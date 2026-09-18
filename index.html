@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta id="themeColorMeta" name="theme-color" content="#eef2f8">
-  <title>GradeFlow – Dein Notenmanager</title>
+  <title>Notio – Dein Notenmanager</title>
   <style>
     @property --accent-color { syntax: '<color>'; inherits: true; initial-value: transparent; }
     @property --ambient-1 { syntax: '<color>'; inherits: true; initial-value: transparent; }
@@ -606,7 +606,7 @@
 
 <div class="app-header">
       <div class="greeting-box">
-        <div class="app-title">GradeFlow 📚</div>
+        <div class="app-title">Notio</div>
         <div class="greeting-subtitle" id="greetingText">Guten Tag</div>
       </div>
 
@@ -2169,6 +2169,7 @@
       const list = activeDefs.length > 0 ? activeDefs : orderedDefs.slice(0, 1);
 
       document.getElementById("widgetSlides").innerHTML = list.map(d => d.html).join("");
+      setTimeout(updateOverallAverage, 0);  
       updateIndicators(list.length);
       renderCalendarPreviewGrid();
       updateExamWidgetUI();
@@ -2800,7 +2801,7 @@ function closeWidgetPosModal() {
 
     function shareDataViaAirDrop() {
       const ds = JSON.stringify(appSettings, null, 2);
-      if (navigator.share) navigator.share({ title: 'GradeFlow Backup', text: 'Meine Noten-Daten:', url: window.location.href }).catch(() => {});
+      if (navigator.share) navigator.share({ title: 'Notio Backup', text: 'Meine Noten-Daten:', url: window.location.href }).catch(() => {});
       else { navigator.clipboard.writeText(ds); alert("Daten in die Zwischenablage kopiert!"); }
     }
   </script>
