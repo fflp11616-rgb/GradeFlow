@@ -86,7 +86,7 @@
       box-sizing: border-box; margin: 0; padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
       -webkit-tap-highlight-color: transparent;
-      user-select: none; /* Verhindert lästiges Textmarkieren/Kopieren auf Mobilgeräten */
+      user-select: none;
       -webkit-user-select: none;
     }
 
@@ -106,7 +106,6 @@
     button, input, select, textarea, div, span { outline: none !important; box-shadow: none !important; }
     *:focus, *:active, *:focus-visible, *:-webkit-autofill { outline: none !important; box-shadow: none !important; background-color: transparent; }
 
-    /* Fix für weiße Ränder / Overscroll auf iOS & Android */
     html {
       background-color: var(--bg-1);
       height: 100%;
@@ -154,8 +153,8 @@
        ========================================================= */
     .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; transition: opacity 0.3s ease; }
     .greeting-box { display: flex; flex-direction: column; }
-    .app-title { font-size: 1.6rem; font-weight: 750; letter-spacing: -0.7px; }
-    .greeting-subtitle { margin-top: 3px; font-size: 0.88rem; font-weight: 600; color: var(--text-sub); }
+    .app-title { font-size: 1.7rem; font-weight: 750; letter-spacing: -0.7px; }
+    .greeting-subtitle { margin-top: 3px; font-size: 0.95rem; font-weight: 600; color: var(--text-sub); }
     .header-actions { display: flex; gap: 8px; align-items: center; }
 
     .icon-btn {
@@ -171,12 +170,14 @@
       background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)), var(--glass-menu-bg); border: 1px solid var(--glass-border);
       backdrop-filter: blur(50px) saturate(130%); -webkit-backdrop-filter: blur(50px) saturate(130%); box-shadow: 0 35px 80px rgba(0,0,0,0.12), inset 0 1px 0 var(--glass-highlight);
       opacity: 0; transform: translateY(-10px) scale(0.96); pointer-events: none; will-change: opacity, transform; transition: opacity 0.3s ease, transform 0.4s cubic-bezier(.16,1,.3,1); z-index: 100;
+      /* Verhindert ungewolltes Page-Scrolling beim Bedienen von Menü-Inhalten auf dem Handy */
+      touch-action: pan-y;
     }
     .glass-menu.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 
     .menu-category { margin-bottom: 12px; border-radius: 18px; border: 1px solid var(--glass-border); background: rgba(255, 255, 255, 0.02); overflow: hidden; transition: border-color 0.25s ease; }
     .menu-category:last-child { margin-bottom: 0; }
-    .menu-category-header { padding: 14px 16px; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.9px; color: var(--text-color); display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; background: transparent; transition: background 0.2s ease; }
+    .menu-category-header { padding: 14px 16px; font-size: 0.9rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.9px; color: var(--text-color); display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; background: transparent; transition: background 0.2s ease; }
     .menu-category-header:hover { background: rgba(255, 255, 255, 0.06) !important; }
     .menu-category-arrow { font-size: 0.75rem; transition: transform 0.3s cubic-bezier(.16,1,.3,1); color: var(--text-sub); }
     .menu-category.expanded .menu-category-arrow { transform: rotate(180deg); }
@@ -184,32 +185,33 @@
     .menu-category.expanded .menu-category-content { max-height: 450px; padding: 4px 16px 16px 16px; }
 
     .menu-section { margin-top: 12px; }
-    .menu-label { margin-bottom: 6px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-sub); }
-    .menu-item { width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid transparent; background: transparent; color: var(--text-color); text-align: left; font-size: 0.9rem; font-weight: 650; cursor: pointer; transition: background 0.2s ease, border 0.2s ease; }
+    .menu-label { margin-bottom: 6px; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-sub); }
+    .menu-item { width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid transparent; background: transparent; color: var(--text-color); text-align: left; font-size: 0.95rem; font-weight: 650; cursor: pointer; transition: background 0.2s ease, border 0.2s ease; }
     .menu-item:hover { background: rgba(255, 255, 255, 0.08) !important; border-color: var(--glass-border); }
 
-    .glow-slider { width: 100%; appearance: none; -webkit-appearance: none; height: 8px; border-radius: 4px; background: var(--input-bg); border: 1px solid var(--glass-border); outline: none; margin-top: 8px; cursor: pointer; }
+    .glow-slider { width: 100%; appearance: none; -webkit-appearance: none; height: 8px; border-radius: 4px; background: var(--input-bg); border: 1px solid var(--glass-border); outline: none; margin-top: 8px; cursor: pointer; touch-action: none; }
     .glow-slider::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--text-color); cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
 
     /* =========================================================
-       HAUPT-WIDGET (FIXED TOUCH SWIPE & CONTAINER)
+       HAUPT-WIDGET
        ========================================================= */
     .overview-card {
       padding: 20px 22px; border-radius: 28px; margin-bottom: 16px; text-align: center;
       background: linear-gradient(145deg, var(--glass-sheen-a), var(--glass-sheen-b)), var(--glass-bg); border: 1px solid var(--glass-border);
       backdrop-filter: blur(42px) saturate(120%); -webkit-backdrop-filter: blur(42px) saturate(120%); box-shadow: 0 30px 80px rgba(0,0,0,0.09), inset 0 1px 0 var(--glass-highlight);
       position: relative; overflow: hidden; 
-      touch-action: none; /* Verhindert das Scrollen der Seite, wenn man das Widget wischt! */
+      /* KRITISCH: Verhindert jegliches Scrollen des Browsers, wenn man das Widget wischt */
+      touch-action: none;
     }
     .overview-card::after {
       content: ""; position: absolute; width: 220px; height: 120px; left: 50%; top: -70px; transform: translateX(-50%); border-radius: 50%;
       background: var(--accent-color); filter: blur(60px); opacity: calc(var(--has-accent) * (0.2 + var(--glow-intensity) * 1.2)); pointer-events: none;
     }
-    .widget-container { position: relative; width: 100%; height: 116px; overflow: hidden; }
+    .widget-container { position: relative; width: 100%; height: 116px; overflow: hidden; touch-action: none; }
     .widget-slides { display: flex; flex-direction: column; height: 100%; transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
     .widget-slide { width: 100%; height: 116px; flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; cursor: pointer; }
-    .overview-sub { position: relative; z-index: 1; font-size: 0.76rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1.1px; font-weight: 700; }
-    .overview-grade { position: relative; z-index: 1; margin: 4px 0; font-size: 3.2rem; font-weight: 800; letter-spacing: -2px; background: linear-gradient(180deg, var(--text-color), color-mix(in srgb, var(--text-color) 70%, transparent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .overview-sub { position: relative; z-index: 1; font-size: 0.82rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1.1px; font-weight: 700; }
+    .overview-grade { position: relative; z-index: 1; margin: 4px 0; font-size: 3.4rem; font-weight: 800; letter-spacing: -2px; background: linear-gradient(180deg, var(--text-color), color-mix(in srgb, var(--text-color) 70%, transparent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
     
     .widget-indicators { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 6px; z-index: 5; }
     .indicator-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-sub); opacity: 0.3; cursor: pointer; transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease; }
@@ -217,27 +219,27 @@
 
     .calendar-wrapper { width: 100%; max-width: 254px; }
     .calendar-grid-preview { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-top: 2px; text-align: center; }
-    .calendar-day-header { font-size: 0.58rem; font-weight: 700; color: var(--text-sub); text-transform: uppercase; }
-    .calendar-cell { aspect-ratio: 1.2; display: flex; align-items: center; justify-content: center; border-radius: 4px; font-size: 0.68rem; background: var(--input-bg); border: 1px solid transparent; }
+    .calendar-day-header { font-size: 0.62rem; font-weight: 700; color: var(--text-sub); text-transform: uppercase; }
+    .calendar-cell { aspect-ratio: 1.2; display: flex; align-items: center; justify-content: center; border-radius: 4px; font-size: 0.72rem; background: var(--input-bg); border: 1px solid transparent; }
     .calendar-cell.has-exam { border-color: var(--glass-border); background: color-mix(in srgb, var(--accent-color) calc(var(--has-accent) * 35%), var(--input-bg)); font-weight: 700; }
     .calendar-cell.today-highlight { border: 1.5px solid var(--accent-color); background: color-mix(in srgb, var(--accent-color) calc(var(--has-accent) * 35% + 15%), var(--input-bg)); box-shadow: 0 0 8px color-mix(in srgb, var(--accent-color) 40%, transparent); font-weight: 800; }
 
     /* =========================================================
-       SMARTE QUICK-EINGABE
+       QUICK-EINGABE
        ========================================================= */
     .quick-input-bar { display: flex; gap: 8px; margin-bottom: 22px; }
-    .quick-input { flex: 1; padding: 13px 16px; border-radius: 14px; border: 1px solid var(--glass-border); background: linear-gradient(135deg, var(--glass-sheen-a), var(--glass-sheen-b)), var(--glass-bg); backdrop-filter: blur(35px) saturate(115%); -webkit-backdrop-filter: blur(35px) saturate(115%); color: var(--text-color); font-size: 0.92rem; box-shadow: var(--glass-shadow); }
+    .quick-input { flex: 1; padding: 13px 16px; border-radius: 14px; border: 1px solid var(--glass-border); background: linear-gradient(135deg, var(--glass-sheen-a), var(--glass-sheen-b)), var(--glass-bg); backdrop-filter: blur(35px) saturate(115%); -webkit-backdrop-filter: blur(35px) saturate(115%); color: var(--text-color); font-size: 0.98rem; box-shadow: var(--glass-shadow); }
     .quick-input::placeholder { color: var(--text-sub); }
 
-    .btn-primary { border: 1px solid var(--glass-border); background: linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.02)), var(--button-bg); color: var(--button-text); padding: 12px 18px; border-radius: 14px; font-size: 0.9rem; font-weight: 650; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.15); transition: transform 0.3s cubic-bezier(.16,1,.3,1), opacity 0.25s ease; }
+    .btn-primary { border: 1px solid var(--glass-border); background: linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.02)), var(--button-bg); color: var(--button-text); padding: 12px 18px; border-radius: 14px; font-size: 0.95rem; font-weight: 650; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.15); transition: transform 0.3s cubic-bezier(.16,1,.3,1), opacity 0.25s ease; }
     .btn-primary:hover { transform: translateY(-2px); opacity: 0.92; }
     .btn-primary:active { transform: scale(0.96); }
 
     /* =========================================================
-       SECTION & SUBJECT CARDS
+       FACH-KARTEN
        ========================================================= */
     .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .section-title { font-weight: 750; font-size: 1.05rem; }
+    .section-title { font-weight: 750; font-size: 1.15rem; }
 
     .subject-card {
       display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; margin-bottom: 10px; border-radius: 22px;
@@ -247,13 +249,13 @@
     }
     .subject-card:hover { transform: translateY(-2px) scale(1.005); }
     .subject-info { display: flex; align-items: center; gap: 14px; }
-    .subject-emoji { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 15px; background: linear-gradient(145deg, var(--glass-sheen-a), var(--glass-sheen-b)), var(--input-bg); border: 1px solid var(--glass-border); box-shadow: inset 0 1px 0 var(--glass-highlight); font-size: 1.35rem; }
-    .subject-name { font-size: 1.05rem; font-weight: 650; }
-    .subject-meta { margin-top: 2px; font-size: 0.8rem; color: var(--text-sub); }
-    .subject-grade-badge { font-size: 1.25rem; font-weight: 750; padding-right: 2px; }
+    .subject-emoji { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 15px; background: linear-gradient(145deg, var(--glass-sheen-a), var(--glass-sheen-b)), var(--input-bg); border: 1px solid var(--glass-border); box-shadow: inset 0 1px 0 var(--glass-highlight); font-size: 1.4rem; }
+    .subject-name { font-size: 1.1rem; font-weight: 650; }
+    .subject-meta { margin-top: 2px; font-size: 0.85rem; color: var(--text-sub); }
+    .subject-grade-badge { font-size: 1.35rem; font-weight: 750; padding-right: 2px; }
 
     /* =========================================================
-       VERTIKALER STUNDENPLAN
+       STUNDENPLAN PREVIEW
        ========================================================= */
     .timetable-preview-vertical {
       display: flex; flex-direction: column; gap: 14px; padding: 18px; margin-bottom: 24px; border-radius: 22px;
@@ -264,23 +266,22 @@
     .timetable-preview-vertical:hover { transform: translateY(-2px) scale(1.005); }
     
     .tt-day-group { display: flex; flex-direction: column; gap: 8px; }
-    .tt-day-title { font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-sub); padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .tt-day-title { font-size: 0.88rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-sub); padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.1); }
     
     .tt-slot { display: flex; align-items: center; gap: 12px; background: var(--input-bg); padding: 11px 14px; border-radius: 14px; border: 1px solid var(--glass-border); transition: 0.2s ease; }
     .tt-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 8px currentColor; }
-    .tt-slot-emoji { font-size: 1.25rem; flex-shrink: 0; }
+    .tt-slot-emoji { font-size: 1.3rem; flex-shrink: 0; }
     .tt-slot-info { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
-    .tt-slot-title { font-weight: 750; font-size: 0.95rem; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .tt-slot-time { font-size: 0.78rem; color: var(--text-sub); margin-top: 2px; }
-    .tt-empty { font-size: 0.85rem; color: var(--text-sub); font-style: italic; padding: 4px 0; }
+    .tt-slot-title { font-weight: 750; font-size: 1rem; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tt-slot-time { font-size: 0.82rem; color: var(--text-sub); margin-top: 2px; }
+    .tt-empty { font-size: 0.9rem; color: var(--text-sub); font-style: italic; padding: 4px 0; }
 
-    .scroll-picker-container { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; padding: 4px; }
-    .scroll-picker-item { padding: 12px; text-align: center; border-radius: 12px; background: var(--input-bg); border: 1px solid var(--glass-border); font-size: 0.95rem; font-weight: 650; cursor: pointer; transition: transform 0.2s ease, background 0.2s ease; }
-    .scroll-picker-item:hover { background: rgba(255, 255, 255, 0.18); transform: scale(1.02); }
-    .scroll-picker-item.active { border-color: var(--accent-color); background: color-mix(in srgb, var(--accent-color) calc(var(--has-accent) * 40%), var(--input-bg)); font-weight: 800; }
+    .day-tabs-bar { display: flex; gap: 4px; background: var(--input-bg); padding: 4px; border-radius: 14px; border: 1px solid var(--glass-border); margin-bottom: 12px; flex-shrink: 0; }
+    .day-tab { flex: 1; text-align: center; padding: 8px 4px; font-size: 0.82rem; font-weight: 700; border-radius: 10px; cursor: pointer; color: var(--text-sub); transition: 0.2s; }
+    .day-tab.active { background: var(--text-color); color: var(--button-text); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
 
     .tt-edit-btn {
-      font-size: 0.8rem; font-weight: 700;
+      font-size: 0.85rem; font-weight: 700;
       background: linear-gradient(135deg, var(--glass-sheen-a), var(--glass-sheen-b)), var(--glass-bg);
       border: 1px solid var(--glass-border); color: var(--text-color);
       padding: 6px 14px; border-radius: 10px; cursor: pointer;
@@ -296,12 +297,12 @@
 
     .tt-slot.edit-mode { cursor: pointer; border-style: dashed; }
     .tt-slot.edit-mode:hover { background: rgba(255,255,255,0.15); transform: scale(1.02); }
-    .tt-add-btn { text-align: center; font-size: 0.9rem; font-weight: 700; color: var(--text-color); padding: 12px; background: var(--input-bg); border: 1px dashed var(--glass-border); border-radius: 14px; cursor: pointer; margin-top: 4px; transition: 0.2s; }
+    .tt-add-btn { text-align: center; font-size: 0.95rem; font-weight: 700; color: var(--text-color); padding: 12px; background: var(--input-bg); border: 1px dashed var(--glass-border); border-radius: 14px; cursor: pointer; margin-top: 4px; transition: 0.2s; }
     .tt-add-btn:hover { background: rgba(255,255,255,0.15); }
 
     .smart-subject-pill {
       background: var(--input-bg); border: 1px solid var(--glass-border); border-radius: 20px;
-      padding: 8px 12px; font-size: 0.9rem; font-weight: 650; color: var(--text-color);
+      padding: 8px 12px; font-size: 0.95rem; font-weight: 650; color: var(--text-color);
       cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px;
     }
     .smart-subject-pill:hover { background: rgba(255, 255, 255, 0.15); transform: scale(1.05); }
@@ -310,25 +311,27 @@
       display: flex; gap: 8px; align-items: center; justify-content: center;
       background: var(--input-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 10px;
       margin-top: 4px; backdrop-filter: blur(20px);
+      touch-action: pan-y;
     }
     .time-picker-col {
       display: flex; flex-direction: column; align-items: center; height: 100px; overflow-y: scroll;
       scroll-snap-type: y mandatory; width: 52px; border-radius: 10px; background: rgba(255,255,255,0.04);
       position: relative; padding: 32px 0;
+      -webkit-overflow-scrolling: touch;
     }
     .time-picker-item {
       height: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center;
-      font-size: 0.95rem; font-weight: 600; color: var(--text-sub); scroll-snap-align: center;
+      font-size: 1rem; font-weight: 600; color: var(--text-sub); scroll-snap-align: center;
       cursor: pointer; width: 100%; transition: color 0.2s ease, transform 0.2s ease, font-size 0.2s ease;
     }
     .time-picker-item.selected {
-      color: var(--text-color); font-size: 1.2rem; font-weight: 800; transform: scale(1.05);
+      color: var(--text-color); font-size: 1.25rem; font-weight: 800; transform: scale(1.05);
     }
     .time-picker-separator {
-      font-size: 1.15rem; font-weight: 800; color: var(--text-color); padding-bottom: 2px;
+      font-size: 1.2rem; font-weight: 800; color: var(--text-color); padding-bottom: 2px;
     }
     .time-preview-badge {
-      text-align: center; font-size: 0.82rem; font-weight: 700; color: var(--text-color);
+      text-align: center; font-size: 0.88rem; font-weight: 700; color: var(--text-color);
       margin-top: 6px; padding: 6px; background: var(--input-bg); border-radius: 10px;
       border: 1px solid var(--glass-border);
     }
@@ -350,16 +353,14 @@
       overflow-y: auto; 
     }
     .modal-overlay.open .modal-card { transform: translateY(0) scale(1); opacity: 1; }
-    .modal-title { margin-bottom: 10px; font-size: 1.15rem; font-weight: 750; flex-shrink: 0; }
+    .modal-title { margin-bottom: 10px; font-size: 1.25rem; font-weight: 750; flex-shrink: 0; }
     .modal-buttons { display: flex; gap: 10px; margin-top: 12px; flex-shrink: 0; }
-    .btn-cancel { flex: 1; padding: 11px 16px; border-radius: 13px; border: 1px solid var(--glass-border); background: var(--input-bg); color: var(--text-color); font-size: 0.88rem; font-weight: 650; cursor: pointer; backdrop-filter: blur(20px); }
+    .btn-cancel { flex: 1; padding: 11px 16px; border-radius: 13px; border: 1px solid var(--glass-border); background: var(--input-bg); color: var(--text-color); font-size: 0.92rem; font-weight: 650; cursor: pointer; backdrop-filter: blur(20px); }
     .btn-cancel:hover { background: rgba(255,255,255,0.18); }
-    .name-input { width: 100%; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--input-bg); color: var(--text-color); font-size: 0.9rem; }
+    .name-input { width: 100%; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--input-bg); color: var(--text-color); font-size: 0.95rem; }
     .name-input::placeholder { color: var(--text-sub); }
 
-    .color-picker-grid-standard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 6px; }
     .color-picker-grid-extended { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-top: 6px; }
-
     .color-dot { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(255,255,255,0.55); transition: transform 0.3s cubic-bezier(.16,1,.3,1); }
     .color-dot.active { transform: scale(1.15); border-color: var(--text-color); box-shadow: 0 0 10px rgba(255,255,255,0.4); }
 
@@ -373,23 +374,23 @@
     .shape-preview-heart { background-color: var(--text-color); mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E") no-repeat center; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E") no-repeat center; width: 14px; height: 14px; }
 
     .emoji-picker-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 6px; max-height: 140px; overflow-y: auto; padding: 4px; }
-    .emoji-option { aspect-ratio: 1; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--input-bg); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; }
+    .emoji-option { aspect-ratio: 1; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--input-bg); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; cursor: pointer; }
     .emoji-option.active { border-color: var(--text-color); background: color-mix(in srgb, var(--text-color) 12%, var(--input-bg)); }
 
-    .clean-list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-radius: 13px; background: var(--input-bg); border: 1px solid var(--glass-border); font-size: 0.88rem; gap: 12px; }
+    .clean-list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-radius: 13px; background: var(--input-bg); border: 1px solid var(--glass-border); font-size: 0.92rem; gap: 12px; }
     .action-btn-group { display: flex; gap: 6px; flex-shrink: 0; }
-    .icon-action-btn { width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--glass-border); background: rgba(255, 255, 255, 0.05); color: var(--text-color); display: flex; align-items: center; justify-content: center; font-size: 0.82rem; cursor: pointer; transition: background 0.2s ease; }
+    .icon-action-btn { width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--glass-border); background: rgba(255, 255, 255, 0.05); color: var(--text-color); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; cursor: pointer; transition: background 0.2s ease; }
     .icon-action-btn:hover { background: rgba(255, 255, 255, 0.15); }
     .icon-action-btn.danger { color: #ff3b30; border-color: rgba(255, 59, 48, 0.3); }
     .icon-action-btn.danger:hover { background: rgba(255, 59, 48, 0.15); }
 
     .big-calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 6px; }
-    .big-calendar-cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 11px; font-size: 0.85rem; font-weight: 600; background: var(--input-bg); border: 1px solid var(--glass-border); cursor: pointer; transition: transform 0.2s ease, background 0.2s ease; }
+    .big-calendar-cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 11px; font-size: 0.9rem; font-weight: 600; background: var(--input-bg); border: 1px solid var(--glass-border); cursor: pointer; transition: transform 0.2s ease, background 0.2s ease; }
     .big-calendar-cell:hover { transform: scale(1.05); background: rgba(255, 255, 255, 0.15); }
     .big-calendar-cell.has-exam { border-color: var(--text-color); background: color-mix(in srgb, var(--accent-color) calc(var(--has-accent) * 45%), var(--input-bg)); font-weight: 800; }
     .big-calendar-cell.today-highlight { border: 2px solid var(--accent-color); background: color-mix(in srgb, var(--accent-color) calc(var(--has-accent) * 35% + 15%), var(--input-bg)); box-shadow: 0 0 12px color-mix(in srgb, var(--accent-color) 40%, transparent); font-weight: 800; }
 
-    .app-footer { padding: 30px 0 10px; text-align: center; font-size: 0.78rem; line-height: 1.5; color: var(--text-sub); }
+    .app-footer { padding: 30px 0 10px; text-align: center; font-size: 0.82rem; line-height: 1.5; color: var(--text-sub); }
 
     @media (max-width: 480px) {
       body { padding: 20px 14px; }
@@ -441,10 +442,10 @@
                 <div class="menu-section">
                   <div class="menu-label">Slide-Reihenfolge (Direktwahl)</div>
                   <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 6px;">
-                    <button class="btn-cancel" style="padding: 9px; font-size: 0.78rem; text-align: left;" onclick="setPresetOrder(1)">1. Schnitt → Klausur → Kal.</button>
-                    <button class="btn-cancel" style="padding: 9px; font-size: 0.78rem; text-align: left;" onclick="setPresetOrder(3)">2. Klausur → Schnitt → Kal.</button>
-                    <button class="btn-cancel" style="padding: 9px; font-size: 0.78rem; text-align: left;" onclick="setPresetOrder(5)">3. Kalender → Schnitt → Klausur</button>
-                    <button class="btn-cancel" style="padding: 9px; font-size: 0.78rem; text-align: left;" onclick="setPresetOrder(6)">4. Kalender → Klausur → Schnitt</button>
+                    <button class="btn-cancel" style="padding: 9px; font-size: 0.82rem; text-align: left;" onclick="setPresetOrder(1)">1. Schnitt → Klausur → Kal.</button>
+                    <button class="btn-cancel" style="padding: 9px; font-size: 0.82rem; text-align: left;" onclick="setPresetOrder(3)">2. Klausur → Schnitt → Kal.</button>
+                    <button class="btn-cancel" style="padding: 9px; font-size: 0.82rem; text-align: left;" onclick="setPresetOrder(5)">3. Kalender → Schnitt → Klausur</button>
+                    <button class="btn-cancel" style="padding: 9px; font-size: 0.82rem; text-align: left;" onclick="setPresetOrder(6)">4. Kalender → Klausur → Schnitt</button>
                   </div>
                 </div>
               </div>
@@ -520,7 +521,7 @@
           <!-- Slide 2: Nächste Klausur -->
           <div class="widget-slide" onclick="startExamWizard()">
             <div class="overview-sub">Nächste Klausur</div>
-            <div class="overview-grade" style="font-size: 2.1rem; margin: 6px 0;" id="widgetExamSubject">Mathematik</div>
+            <div class="overview-grade" style="font-size: 2.2rem; margin: 6px 0;" id="widgetExamSubject">Mathematik</div>
             <div class="overview-sub" style="color: var(--text-color); font-weight: 800;" id="widgetExamMeta">In 3 Tagen (Montag)</div>
           </div>
           <!-- Slide 3: Kalender Preview -->
@@ -555,7 +556,7 @@
     <div class="section-header" style="margin-top: 24px;">
       <span class="section-title">Stundenplan</span>
     </div>
-    <div class="timetable-preview-vertical" onclick="openTimetablePickerModal()">
+    <div class="timetable-preview-vertical" onclick="openTimetableModal()">
       <div class="tt-day-group">
         <div class="tt-day-title" id="ttTitle1">Heute</div>
         <div id="ttList1" style="display: flex; flex-direction: column; gap: 8px;"></div>
@@ -575,41 +576,33 @@
   </div>
 
   <!-- MODALS -->
-  <div class="modal-overlay" id="timetablePickerModal" onclick="handleModalBackground(event, 'timetablePickerModal')">
-    <div class="modal-card" onclick="event.stopPropagation()" style="max-width: 340px;">
-      <div class="modal-title">Stundenplan 📅</div>
-      <div style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 10px;">Wähle einen Wochentag aus:</div>
-      <div class="scroll-picker-container" id="dayPickerList">
-        <div class="scroll-picker-item" onclick="openTimetableDayModal(1)">Montag</div>
-        <div class="scroll-picker-item" onclick="openTimetableDayModal(2)">Dienstag</div>
-        <div class="scroll-picker-item" onclick="openTimetableDayModal(3)">Mittwoch</div>
-        <div class="scroll-picker-item" onclick="openTimetableDayModal(4)">Donnerstag</div>
-        <div class="scroll-picker-item" onclick="openTimetableDayModal(5)">Freitag</div>
-      </div>
-      <div style="margin-top: 14px;">
-        <button class="btn-primary" style="width: 100%; padding: 11px;" onclick="closeTimetablePickerModal()">Schließen</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="timetableDayModal" onclick="handleModalBackground(event, 'timetableDayModal')">
-    <div class="modal-card" onclick="event.stopPropagation()" style="max-width: 390px;">
+  <div class="modal-overlay" id="timetableModal" onclick="handleModalBackground(event, 'timetableModal')">
+    <div class="modal-card" onclick="event.stopPropagation()" style="max-width: 390px; max-height: 85vh;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-shrink: 0;">
-        <div class="modal-title" style="margin-bottom: 0;" id="ttDayModalTitle">Montag</div>
-        <button class="tt-edit-btn" id="ttEditToggleBtn" onclick="toggleTimetableEdit()">Bearbeiten</button>
+        <div class="modal-title" style="margin-bottom: 0;">Stundenplan 📅</div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button class="tt-edit-btn" id="ttEditToggleBtn" onclick="toggleTimetableEdit()">Bearbeiten</button>
+          <button class="icon-action-btn" onclick="closeTimetableModal()" title="Schließen">✕</button>
+        </div>
       </div>
-      <div style="font-size: 0.82rem; color: var(--text-sub); margin-bottom: 10px; flex-shrink: 0;" id="ttDayModalSubtitle">Fächer für diesen Tag:</div>
+
+      <div class="day-tabs-bar" id="dayTabsBar">
+        <div class="day-tab active" onclick="switchTimetableTab(1)">Mo</div>
+        <div class="day-tab" onclick="switchTimetableTab(2)">Di</div>
+        <div class="day-tab" onclick="switchTimetableTab(3)">Mi</div>
+        <div class="day-tab" onclick="switchTimetableTab(4)">Do</div>
+        <div class="day-tab" onclick="switchTimetableTab(5)">Fr</div>
+      </div>
+      
+      <div style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 10px; flex-shrink: 0;" id="ttDayModalSubtitle">Fächer für diesen Tag:</div>
       
       <div style="overflow-y: auto; flex: 1; padding-right: 2px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;" id="ttDayModalList"></div>
       
-      <div id="ttDayAddButtonContainer" style="margin-bottom: 10px; display: none; flex-shrink: 0;">
+      <div id="ttDayAddButtonContainer" style="margin-bottom: 12px; display: none; flex-shrink: 0;">
         <div class="tt-add-btn" onclick="openTtSlotPromptFromDay()">+ Fach hinzufügen</div>
       </div>
 
-      <div class="modal-buttons" style="margin-top: 0; flex-shrink: 0;">
-        <button class="btn-cancel" onclick="backToTimetablePicker()">Zurück</button>
-        <button class="btn-primary" style="flex:1" onclick="closeTimetableDayModal()">Schließen</button>
-      </div>
+      <button class="btn-primary" style="width: 100%; padding: 11px; flex-shrink: 0;" onclick="closeTimetableModal()">Fertig</button>
     </div>
   </div>
 
@@ -623,7 +616,7 @@
         <input type="text" id="ttPromptSubject" class="name-input" placeholder="z.B. Mathematik..." style="margin-bottom: 10px;">
         
         <div class="menu-label">Uhrzeit (Wischen zum Einstellen)</div>
-        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; color: var(--text-sub); margin-bottom: 2px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.82rem; color: var(--text-sub); margin-bottom: 2px;">
           <span>Von</span><span>Bis</span>
         </div>
         <div style="display: flex; gap: 8px; align-items: center; justify-content: center;">
@@ -674,12 +667,12 @@
   <div class="modal-overlay" id="wizardSubjectModal" onclick="handleModalBackground(event, 'wizardSubjectModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
       <div class="modal-title">Klausur eintragen (1/2) 📚</div>
-      <div style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 10px;">Welches Fach? Wähle einen Ordner oder gib ein neues ein:</div>
+      <div style="font-size: 0.9rem; color: var(--text-sub); margin-bottom: 10px;">Welches Fach? Wähle einen Ordner oder gib ein neues ein:</div>
       <div style="display: flex; gap: 8px; margin-bottom: 10px;">
         <input type="text" id="wizardCustomSubjectInput" class="name-input" placeholder="Oder neues Fach eingeben...">
         <button class="btn-primary" onclick="confirmWizardSubjectCustom()">Weiter</button>
       </div>
-      <div style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-sub); margin-bottom: 6px;">Oder bestehendes Fach wählen:</div>
+      <div style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-sub); margin-bottom: 6px;">Oder bestehendes Fach wählen:</div>
       <div id="wizardSubjectSelectList" style="display: flex; flex-direction: column; gap: 6px; overflow-y: auto; max-height: 160px; padding-right: 2px; margin-bottom: 10px;"></div>
       <button class="btn-cancel" style="width: 100%; padding: 10px;" onclick="closeWizardSubjectModal()">Abbrechen</button>
     </div>
@@ -688,7 +681,7 @@
   <div class="modal-overlay" id="wizardDaysModal" onclick="handleModalBackground(event, 'wizardDaysModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
       <div class="modal-title" id="wizardDaysTitle">Klausur eintragen (2/2) ⏳</div>
-      <div style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 10px;" id="wizardDaysSubtitle">Anzahl Tage (z.B. 5) oder direktes Datum (z.B. 29. September oder 29.10.):</div>
+      <div style="font-size: 0.9rem; color: var(--text-sub); margin-bottom: 10px;" id="wizardDaysSubtitle">Anzahl Tage (z.B. 5) oder direktes Datum (z.B. 29. September oder 29.10.):</div>
       <input type="text" id="wizardDaysInput" class="name-input" placeholder="z.B. 5 oder 29. September" onkeydown="handleWizardDaysKey(event)" style="margin-bottom: 12px;">
       <div class="modal-buttons" style="margin-top: 0;">
         <button class="btn-cancel" onclick="closeWizardDaysModal()">Zurück</button>
@@ -700,7 +693,7 @@
   <div class="modal-overlay" id="averageDetailModal" onclick="handleModalBackground(event, 'averageDetailModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
       <div class="modal-title">Gesamtdurchschnitt-Analyse 📊</div>
-      <div style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 10px;">So setzt sich dein aktueller Schnitt zusammen:</div>
+      <div style="font-size: 0.9rem; color: var(--text-sub); margin-bottom: 10px;">So setzt sich dein aktueller Schnitt zusammen:</div>
       <div id="averageBreakdownList" style="display: flex; flex-direction: column; gap: 8px; overflow-y: auto; margin-bottom: 12px; flex: 1; padding-right: 2px;"></div>
       <button class="btn-primary" style="width: 100%; padding: 11px;" onclick="closeAverageDetailModal()">Schließen</button>
     </div>
@@ -718,14 +711,14 @@
           <button class="icon-action-btn" onclick="changeMonth(1)">▶</button>
         </div>
       </div>
-      <div style="font-size: 0.82rem; color: var(--text-sub); margin-bottom: 8px; flex-shrink: 0;">Tippe auf einen Tag, um direkt eine Klausur hinzuzufügen:</div>
+      <div style="font-size: 0.88rem; color: var(--text-sub); margin-bottom: 8px; flex-shrink: 0;">Tippe auf einen Tag, um direkt eine Klausur hinzuzufügen:</div>
       
       <div style="overflow-y: auto; flex: 1; padding-right: 2px; margin-bottom: 10px;">
         <div class="calendar-grid-preview" style="margin-bottom: 4px;">
           <div class="calendar-day-header">Mo</div><div class="calendar-day-header">Di</div><div class="calendar-day-header">Mi</div><div class="calendar-day-header">Do</div><div class="calendar-day-header">Fr</div><div class="calendar-day-header">Sa</div><div class="calendar-day-header">So</div>
         </div>
         <div class="big-calendar-grid" id="bigCalendarGrid"></div>
-        <div style="margin-top: 14px; font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-sub); margin-bottom: 4px;">Termine in diesem Monat</div>
+        <div style="margin-top: 14px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-sub); margin-bottom: 4px;">Termine in diesem Monat</div>
         <div id="calendarEventsList" style="display: flex; flex-direction: column; gap: 6px;"></div>
       </div>
       <button class="btn-primary" style="width: 100%; padding: 11px; flex-shrink: 0;" onclick="closeCalendarModal()">Schließen</button>
@@ -762,7 +755,7 @@
   <div class="modal-overlay" id="examDeleteConfirmModal" onclick="handleModalBackground(event, 'examDeleteConfirmModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
       <div class="modal-title">Termin löschen? 🗑️</div>
-      <div style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 12px;" id="examDeletePromptText">Möchtest du diesen Termin wirklich unwiderruflich löschen?</div>
+      <div style="font-size: 0.9rem; color: var(--text-sub); margin-bottom: 12px;" id="examDeletePromptText">Möchtest du diesen Termin wirklich unwiderruflich löschen?</div>
       <div class="modal-buttons" style="margin-top: 12px;">
         <button class="btn-cancel" onclick="closeExamDeleteConfirmModal()">Abbrechen</button>
         <button class="btn-primary" style="flex:1; background: rgba(255, 59, 48, 0.85); border-color: rgba(255, 59, 48, 0.3);" onclick="executeDeleteExam()">Löschen</button>
@@ -773,7 +766,7 @@
   <div class="modal-overlay" id="glassErrorModal" onclick="closeGlassErrorModal()">
     <div class="modal-card" onclick="event.stopPropagation()" style="max-width: 330px; background: linear-gradient(145deg, rgba(60, 30, 35, 0.55), rgba(30, 25, 28, 0.45)); border-color: rgba(255, 90, 90, 0.25);">
       <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;"><span style="font-size: 1.4rem;">⚠️</span><div class="modal-title" style="margin-bottom: 0; color: #ff6b6b;">Ungültige Note</div></div>
-      <div style="font-size: 0.88rem; color: var(--text-color); font-weight: 600; line-height: 1.4; margin-bottom: 16px;">Im Notensystem sind ausschließlich Werte von <strong style="color: #ff6b6b;">1.0 bis 6.0</strong> erlaubt.</div>
+      <div style="font-size: 0.92rem; color: var(--text-color); font-weight: 600; line-height: 1.4; margin-bottom: 16px;">Im Notensystem sind ausschließlich Werte von <strong style="color: #ff6b6b;">1.0 bis 6.0</strong> erlaubt.</div>
       <button class="btn-primary" style="width: 100%; padding: 11px; background: rgba(255, 90, 90, 0.25); border-color: rgba(255, 90, 90, 0.4);" onclick="closeGlassErrorModal()">Verstanden</button>
     </div>
   </div>
@@ -781,7 +774,7 @@
   <div class="modal-overlay" id="glassCreateSubjectModal" onclick="closeGlassCreateSubjectModal()">
     <div class="modal-card" onclick="event.stopPropagation()" style="max-width: 330px;">
       <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;"><span style="font-size: 1.4rem;">📁</span><div class="modal-title" style="margin-bottom: 0;">Neues Fach anlegen?</div></div>
-      <div style="font-size: 0.88rem; color: var(--text-color); font-weight: 600; line-height: 1.4; margin-bottom: 16px;" id="createSubjectPromptText">Das Fach existiert noch nicht. Möchtest du es direkt erstellen?</div>
+      <div style="font-size: 0.92rem; color: var(--text-color); font-weight: 600; line-height: 1.4; margin-bottom: 16px;" id="createSubjectPromptText">Das Fach existiert noch nicht. Möchtest du es direkt erstellen?</div>
       <div class="modal-buttons" style="margin-top: 0;"><button class="btn-cancel" onclick="closeGlassCreateSubjectModal()">Nein</button><button class="btn-primary" style="flex:1" onclick="confirmCreateSubjectFromPrompt()">Ja, anlegen</button></div>
     </div>
   </div>
@@ -797,7 +790,7 @@
   <div class="modal-overlay" id="subjectSelectModal" onclick="handleModalBackground(event, 'subjectSelectModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
       <div class="modal-title">In welchen Ordner? 📂</div>
-      <div style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 10px;" id="selectModalText">Wähle das Fach für die Note aus:</div>
+      <div style="font-size: 0.9rem; color: var(--text-sub); margin-bottom: 10px;" id="selectModalText">Wähle das Fach für die Note aus:</div>
       <div style="display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1; max-height: 180px;" id="subjectSelectList"></div>
       <div class="modal-buttons" style="margin-top: 12px;"><button class="btn-cancel" onclick="closeSubjectSelectModal()">Abbrechen</button></div>
     </div>
@@ -857,7 +850,7 @@
   <div class="modal-overlay" id="subjectDeleteConfirmModal" onclick="handleModalBackground(event, 'subjectDeleteConfirmModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
       <div class="modal-title">Fach löschen? 🗑️</div>
-      <div style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 12px;">Möchtest du dieses Fach inklusive aller eingetragenen Noten wirklich unwiderruflich löschen?</div>
+      <div style="font-size: 0.9rem; color: var(--text-sub); margin-bottom: 12px;">Möchtest du dieses Fach inklusive aller eingetragenen Noten wirklich unwiderruflich löschen?</div>
       <div class="modal-buttons" style="margin-top: 12px;"><button class="btn-cancel" onclick="closeSubjectDeleteConfirmModal()">Abbrechen</button><button class="btn-primary" style="flex:1; background: rgba(255, 59, 48, 0.85); border-color: rgba(255, 59, 48, 0.3);" onclick="executeDeleteSubject()">Löschen</button></div>
     </div>
   </div>
@@ -865,29 +858,29 @@
   <div class="modal-overlay" id="subjectDetailModal" onclick="handleModalBackground(event, 'subjectDetailModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
       <div class="modal-title" id="detailModalTitle">Fach-Details 📂</div>
-      <div style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 10px;" id="detailModalMeta">Noten-Übersicht</div>
+      <div style="font-size: 0.9rem; color: var(--text-sub); margin-bottom: 10px;" id="detailModalMeta">Noten-Übersicht</div>
       
-      <div style="font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-sub); margin-bottom: 4px;">Klausuren</div>
+      <div style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-sub); margin-bottom: 4px;">Klausuren</div>
       <div id="detailKlausurenList" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; max-height: 100px; overflow-y: auto; padding-right: 2px;"></div>
 
-      <div style="font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-sub); margin-bottom: 4px;">Tests & Sonstige</div>
+      <div style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-sub); margin-bottom: 4px;">Tests & Sonstige</div>
       <div id="detailTestsList" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; max-height: 100px; overflow-y: auto; padding-right: 2px;"></div>
 
       <div style="padding-top: 10px; border-top: 1px solid var(--glass-border);">
         <div class="menu-label" style="margin-bottom: 4px;">🎯 Was-wäre-wenn Rechner</div>
-        <div style="font-size: 0.78rem; color: var(--text-sub); margin-bottom: 4px;">Ziel-Schnitt: <strong id="targetGradeLabel" style="color: var(--text-color);">3.0</strong></div>
+        <div style="font-size: 0.82rem; color: var(--text-sub); margin-bottom: 4px;">Ziel-Schnitt: <strong id="targetGradeLabel" style="color: var(--text-color);">3.0</strong></div>
         <input type="range" id="whatIfSlider" min="1.0" max="6.0" step="0.5" value="3.0" class="glow-slider" oninput="calculateWhatIf(this.value)">
-        <div id="whatIfResult" style="margin-top: 4px; font-size: 0.78rem; font-weight: 700; text-align: center; color: var(--text-color);">Um auf Schnitt 3,0 zu kommen, benötigst du ca. Note 4,0.</div>
+        <div id="whatIfResult" style="margin-top: 4px; font-size: 0.82rem; font-weight: 700; text-align: center; color: var(--text-color);">Um auf Schnitt 3,0 zu kommen, benötigst du ca. Note 4,0.</div>
       </div>
 
       <div class="menu-category" id="detailFolderCategory" style="margin-top: 10px; margin-bottom: 0;">
-        <div class="menu-category-header" onclick="toggleDetailFolder()" style="padding: 10px 14px; font-size: 0.78rem;">
+        <div class="menu-category-header" onclick="toggleDetailFolder()" style="padding: 10px 14px; font-size: 0.82rem;">
           <span>📁 Fach verwalten</span><span class="menu-category-arrow" id="detailFolderArrow">▼</span>
         </div>
         <div class="menu-category-content" id="detailFolderContent" style="padding: 0 12px;">
           <div style="display: flex; flex-direction: column; gap: 6px; padding-bottom: 8px; padding-top: 4px;">
-            <button class="btn-cancel" style="width: 100%; padding: 8px; font-size: 0.78rem;" onclick="openSubjectEditModal()">✏️ Name & Icon ändern</button>
-            <button class="btn-cancel" style="width: 100%; padding: 8px; font-size: 0.78rem; color: #ff3b30; border-color: rgba(255,59,48,0.3);" onclick="promptDeleteSubject()">🗑️ Fach löschen</button>
+            <button class="btn-cancel" style="width: 100%; padding: 8px; font-size: 0.82rem;" onclick="openSubjectEditModal()">✏️ Name & Icon ändern</button>
+            <button class="btn-cancel" style="width: 100%; padding: 8px; font-size: 0.82rem; color: #ff3b30; border-color: rgba(255,59,48,0.3);" onclick="promptDeleteSubject()">🗑️ Fach löschen</button>
           </div>
         </div>
       </div>
@@ -1020,7 +1013,7 @@
           
           btnGroup.appendChild(editBtn); btnGroup.appendChild(delBtn); klContainer.appendChild(item);
         });
-      } else klContainer.innerHTML = `<div style="font-size: 0.78rem; color: var(--text-sub);">Keine Klausuren eingetragen.</div>`;
+      } else klContainer.innerHTML = `<div style="font-size: 0.82rem; color: var(--text-sub);">Keine Klausuren eingetragen.</div>`;
 
       const teContainer = document.getElementById("detailTestsList"); teContainer.innerHTML = "";
       if (sub.tests && sub.tests.length > 0) {
@@ -1037,7 +1030,7 @@
           
           btnGroup.appendChild(editBtn); btnGroup.appendChild(delBtn); teContainer.appendChild(item);
         });
-      } else teContainer.innerHTML = `<div style="font-size: 0.78rem; color: var(--text-sub);">Keine Tests eingetragen.</div>`;
+      } else teContainer.innerHTML = `<div style="font-size: 0.82rem; color: var(--text-sub);">Keine Tests eingetragen.</div>`;
 
       const slider = document.getElementById("whatIfSlider"); slider.value = "3.0"; calculateWhatIf(3.0);
       document.getElementById("subjectDetailModal").classList.add("open");
@@ -1087,41 +1080,39 @@
       if(slots.length > 3) container.innerHTML += `<div class="tt-empty" style="text-align:center;">+ ${slots.length - 3} weitere Fächer</div>`;
     }
 
-    function openTimetablePickerModal() {
-      document.body.classList.add("modal-open");
-      document.getElementById("timetablePickerModal").classList.add("open");
-    }
+    function openTimetableModal() {
+      let today = new Date().getDay();
+      if (today >= 1 && today <= 5) activeTimetableDay = today;
+      else activeTimetableDay = 1;
 
-    function closeTimetablePickerModal() {
-      document.getElementById("timetablePickerModal").classList.remove("open");
-      checkModalState();
-    }
-
-    function openTimetableDayModal(dayIndex) {
-      activeTimetableDay = dayIndex;
       isTimetableEditMode = false;
       const btn = document.getElementById("ttEditToggleBtn");
       btn.classList.remove("active");
       btn.textContent = "Bearbeiten";
 
-      const dayNames = {1:"Montag", 2:"Dienstag", 3:"Mittwoch", 4:"Donnerstag", 5:"Freitag"};
-      document.getElementById("ttDayModalTitle").textContent = dayNames[dayIndex];
-      
-      closeTimetablePickerModal();
+      updateDayTabsUI();
       renderDayModalContent();
       document.body.classList.add("modal-open");
-      document.getElementById("timetableDayModal").classList.add("open");
+      document.getElementById("timetableModal").classList.add("open");
     }
 
-    function closeTimetableDayModal() {
-      document.getElementById("timetableDayModal").classList.remove("open");
+    function closeTimetableModal() {
+      document.getElementById("timetableModal").classList.remove("open");
       renderTimetablePreview();
       checkModalState();
     }
 
-    function backToTimetablePicker() {
-      document.getElementById("timetableDayModal").classList.remove("open");
-      openTimetablePickerModal();
+    function switchTimetableTab(dayIndex) {
+      activeTimetableDay = dayIndex;
+      updateDayTabsUI();
+      renderDayModalContent();
+    }
+
+    function updateDayTabsUI() {
+      const tabs = document.querySelectorAll("#dayTabsBar .day-tab");
+      tabs.forEach((tab, idx) => {
+        tab.classList.toggle("active", (idx + 1) === activeTimetableDay);
+      });
     }
 
     function toggleTimetableEdit() {
@@ -1142,11 +1133,13 @@
       const container = document.getElementById("ttDayModalList");
       container.innerHTML = "";
       const addBtnContainer = document.getElementById("ttDayAddButtonContainer");
+      const dayNames = {1:"Montag", 2:"Dienstag", 3:"Mittwoch", 4:"Donnerstag", 5:"Freitag"};
+      document.getElementById("ttDayModalSubtitle").textContent = `Fächer für ${dayNames[activeTimetableDay]}:`;
       
       let slots = appSettings.timetable[activeTimetableDay] || [];
 
       if (slots.length === 0 && !isTimetableEditMode) {
-        container.innerHTML = `<div class="tt-empty" style="text-align:center; padding: 20px 0;">An diesem Tag ist frei 🎉</div>`;
+        container.innerHTML = `<div class="tt-empty" style="text-align:center; padding: 24px 0;">An diesem Tag ist frei 🎉</div>`;
       } else {
         slots.forEach((slot, idx) => {
           let emoji = getEmojiForSubject(slot.subject);
@@ -1158,7 +1151,7 @@
                 <span class="tt-slot-title">${escapeHTML(slot.subject)}</span>
                 <span class="tt-slot-time">${escapeHTML(slot.time)}</span>
               </div>
-              ${isTimetableEditMode ? `<div style="font-size:0.85rem; opacity: 0.6;">✏️</div>` : ''}
+              ${isTimetableEditMode ? `<div style="font-size:0.9rem; opacity: 0.6;">✏️</div>` : ''}
             </div>`;
         });
       }
@@ -1215,7 +1208,7 @@
         delBtn.style.display = "none"; 
         document.getElementById("ttPromptTitle").textContent = "Neues Fach ➕";
       }
-      document.getElementById("timetableDayModal").classList.remove("open"); 
+      document.getElementById("timetableModal").classList.remove("open"); 
       document.getElementById("ttSlotPromptModal").classList.add("open");
     }
 
@@ -1296,7 +1289,7 @@
 
     function closeTtSlotPrompt() { 
       document.getElementById("ttSlotPromptModal").classList.remove("open"); 
-      document.getElementById("timetableDayModal").classList.add("open"); 
+      document.getElementById("timetableModal").classList.add("open"); 
       renderDayModalContent();
     }
 
@@ -1389,11 +1382,11 @@
       for (let i = 1; i <= daysInMonth; i++) {
         let matchingExam = appSettings.examsList.find(e => e.day === i && e.month === (mIdx + 1) && e.year === yr);
         let cls = "big-calendar-cell" + (matchingExam ? " has-exam" : "") + (isCurrentMonthYear && i === todayDate ? " today-highlight" : "");
-        let cell = document.createElement("div"); cell.className = cls; cell.innerHTML = `<span>${i}</span>` + (matchingExam ? `<span style="font-size: 0.58rem; opacity: 0.8; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 90%;">${escapeHTML(matchingExam.subject)}</span>` : "");
+        let cell = document.createElement("div"); cell.className = cls; cell.innerHTML = `<span>${i}</span>` + (matchingExam ? `<span style="font-size: 0.62rem; opacity: 0.8; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 90%;">${escapeHTML(matchingExam.subject)}</span>` : "");
         cell.onclick = () => openGlassPromptModal(i); grid.appendChild(cell);
       }
       const listContainer = document.getElementById("calendarEventsList"); listContainer.innerHTML = ""; let monthExams = appSettings.examsList.filter(e => e.month === (mIdx + 1) && e.year === yr);
-      if (monthExams.length === 0) listContainer.innerHTML = `<div style="font-size: 0.78rem; color: var(--text-sub);">Keine Klausuren in diesem Monat.</div>`;
+      if (monthExams.length === 0) listContainer.innerHTML = `<div style="font-size: 0.82rem; color: var(--text-sub);">Keine Klausuren in diesem Monat.</div>`;
       else monthExams.forEach(ex => listContainer.innerHTML += `<div class="clean-list-item"><div>📌 <strong>Tag ${ex.day}:</strong> ${escapeHTML(ex.subject)}</div><div class="action-btn-group"><button class="icon-action-btn danger" onclick="promptDeleteExam(${appSettings.examsList.indexOf(ex)})" title="Löschen">🗑️</button></div></div>`);
     }
     function renderCalendarPreviewGrid() {
@@ -1433,7 +1426,7 @@
       const order = permutations[idx];
       const allSlidesHTML = [
         `<div class="widget-slide" onclick="openAverageDetailModal()"><div class="overview-sub" id="overallLabel">Gesamtdurchschnitt</div><div class="overview-grade" id="overallGrade">1.5</div><div class="overview-sub" id="subjectCount">${subjectsData.length} Fächer aktiv</div></div>`,
-        `<div class="widget-slide" onclick="startExamWizard()"><div class="overview-sub">Nächste Klausur</div><div class="overview-grade" style="font-size: 2.1rem; margin: 6px 0;" id="widgetExamSubject">Mathematik</div><div class="overview-sub" style="color: var(--text-color); font-weight: 800;" id="widgetExamMeta">In 3 Tagen (Montag)</div></div>`,
+        `<div class="widget-slide" onclick="startExamWizard()"><div class="overview-sub">Nächste Klausur</div><div class="overview-grade" style="font-size: 2.2rem; margin: 6px 0;" id="widgetExamSubject">Mathematik</div><div class="overview-sub" style="color: var(--text-color); font-weight: 800;" id="widgetExamMeta">In 3 Tagen (Montag)</div></div>`,
         `<div class="widget-slide" onclick="openCalendarModal()"><div class="calendar-wrapper"><div class="overview-sub" style="margin-bottom: 2px;">KALENDER</div><div class="calendar-grid-preview" id="mainCalendarGrid"></div></div></div>`
       ];
       document.getElementById("widgetSlides").innerHTML = order.map(i => allSlidesHTML[i]).join("");
@@ -1673,8 +1666,7 @@
         if (modalId === 'monthPickerModal') closeMonthPickerModal(); if (modalId === 'yearPickerModal') closeYearPickerModal();
         if (modalId === 'wizardSubjectModal') closeWizardSubjectModal(); if (modalId === 'wizardDaysModal') closeWizardDaysModal();
         if (modalId === 'examDeleteConfirmModal') closeExamDeleteConfirmModal(); if (modalId === 'glassCreateSubjectModal') closeGlassCreateSubjectModal();
-        if (modalId === 'timetablePickerModal') closeTimetablePickerModal(); if (modalId === 'timetableDayModal') closeTimetableDayModal();
-        if (modalId === 'ttSlotPromptModal') closeTtSlotPrompt();
+        if (modalId === 'timetableModal') closeTimetableModal(); if (modalId === 'ttSlotPromptModal') closeTtSlotPrompt();
       }
     }
     function shareDataViaAirDrop() { const dataStr = JSON.stringify(appSettings, null, 2); if (navigator.share) navigator.share({ title: 'GradeFlow Backup', text: 'Meine Noten-Daten:', url: window.location.href }).catch(() => {}); else { navigator.clipboard.writeText(dataStr); alert("Daten in die Zwischenablage kopiert!"); } }
