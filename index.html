@@ -64,28 +64,19 @@
     ::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
     button, input, select, textarea, div, span { outline: none !important; box-shadow: none !important; }
     *:focus, *:active, *:-webkit-autofill { outline: none !important; box-shadow: none !important; background-color: transparent; }
-    *:focus-visible { outline: 2px solid var(--accent-color, #007aff) !important; outline-offset: 2px; }
+    *:focus-visible { 
+      outline: none !important; 
+      box-shadow: 0 0 0 2px var(--accent-color, #007aff) !important; 
+    }
 
-    /* ═══════════════════════════════════════════════════════════════
-       OVERSCROLL-FIX
-       ═══════════════════════════════════════════════════════════════
-       html und body haben dieselbe Farbe wie der Haupt-Hintergrund
-       → Wenn Safari trotzdem bounct, sieht man KEIN Schwarz/Weiß.
-       overscroll-behavior: none → verhindert Bounce in Chrome/Firefox.
-       ═══════════════════════════════════════════════════════════════ */
     html {
       background-color: #eef2f8;
       transition: background-color 0.4s ease;
       overscroll-behavior: none;
       overscroll-behavior-y: none;
     }
-    html:has(body.dark-mode) {
-      background-color: #07080c;
-    }
-    body {
-      overscroll-behavior: none;
-      overscroll-behavior-y: none;
-    }
+    html:has(body.dark-mode) { background-color: #07080c; }
+    body { overscroll-behavior: none; overscroll-behavior-y: none; }
 
     body {
       min-height: 100vh; color: var(--text-color);
@@ -94,25 +85,21 @@
         radial-gradient(circle at 90% 20%, var(--ambient-2) 0%, transparent 35%),
         radial-gradient(circle at 50% 100%, var(--ambient-3) 0%, transparent 40%),
         linear-gradient(145deg, var(--bg-1), var(--bg-2));
-      background-attachment: fixed; padding: 40px 20px; display: flex; justify-content: center; position: relative;
+      background-attachment: fixed;
+      padding: calc(40px + env(safe-area-inset-top)) 20px calc(40px + env(safe-area-inset-bottom)) 20px;
+      display: flex; justify-content: center; position: relative;
       transition: background 0.8s ease, color 0.4s ease; overflow-x: hidden;
     }
     body::before, body::after { content: ""; position: fixed; width: 450px; height: 450px; border-radius: 50%; pointer-events: none; filter: blur(100px); opacity: calc(var(--has-accent) * (0.12 + var(--glow-intensity) * 6)); z-index: 0; transition: background 0.8s ease, opacity 0.8s ease; }
     body::before { top: -180px; left: -160px; background: var(--accent-color); }
     body::after { right: -180px; bottom: -180px; background: var(--accent-color); }
 
-    /* ═══════════════════════════════════════════════════════════════
-       PATTERN-LAYER
-       ═══════════════════════════════════════════════════════════════
-       inset: -300px → Der Layer reicht 300px über den Viewport hinaus
-       → Beim Bounce sieht man weiterhin Pattern, KEIN leerer Rand.
-       ═══════════════════════════════════════════════════════════════ */
     .pattern-layer {
       position: fixed;
-      top: -300px;
+      top: calc(-300px - env(safe-area-inset-top));
       left: -300px;
       right: -300px;
-      bottom: -300px;
+      bottom: calc(-300px - env(safe-area-inset-bottom));
       background-repeat: repeat;
       background-size: 130px 130px;
       opacity: calc(0.85 + var(--glow-intensity) * 8);
@@ -152,20 +139,262 @@
     .menu-category.expanded .menu-category-content { max-height: 420px; padding: 4px 16px 16px 16px; }
     #detailFolderCategory.expanded .menu-category-content { max-height: 700px; }
 
+    /* ═══════════════════════════════════════════════════════════════
+       UNTER-KATEGORIE FÜR NOTEN-GEWICHTUNG
+       ═══════════════════════════════════════════════════════════════ */
+    .sub-category {
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+      margin-bottom: 4px;
+      transition: background 0.3s ease;
+    }
+    body.dark-mode .sub-category { background: rgba(255, 255, 255, 0.03); }
+
+    .sub-category-header {
+      padding: 10px 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s ease;
+    }
+    .sub-category-header:hover { background: rgba(255, 255, 255, 0.15); }
+
+    .sub-category-arrow {
+      font-size: 0.65rem;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      color: var(--text-sub);
+    }
+    .sub-category.expanded .sub-category-arrow { transform: rotate(180deg); }
+
+    .sub-category-content {
+      max-height: 0;
+      overflow: hidden;
+      padding: 0 12px;
+      transition: max-height 0.5s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease;
+    }
+    .sub-category.expanded .sub-category-content {
+      max-height: 250px;
+      padding: 4px 12px 12px 12px;
+    }
+
     .menu-section { margin-top: 12px; }
     .menu-label { margin-bottom: 6px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-sub); }
     .menu-item { width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid transparent; background: transparent; color: var(--text-color); text-align: left; font-size: 0.85rem; font-weight: 650; cursor: pointer; transition: background 0.2s ease; }
     .menu-item:hover { background: rgba(255, 255, 255, 0.18); border-color: var(--glass-border); }
 
-    .widget-toggle-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 12px; background: var(--input-bg); border: 1px solid var(--glass-border); cursor: pointer; transition: background 0.2s ease; }
+    /* WIDGET-TOGGLES */
+    .widget-toggle-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; border-radius: 12px;
+      background: var(--input-bg); border: 1px solid var(--glass-border);
+      transition: background 0.2s ease;
+      gap: 10px;
+    }
     .widget-toggle-item:hover { background: rgba(255, 255, 255, 0.28); }
-    .widget-toggle-label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 650; color: var(--text-color); pointer-events: none; }
-    .widget-toggle-switch { width: 36px; height: 20px; border-radius: 10px; background: rgba(120, 120, 128, 0.30); position: relative; transition: background 0.25s ease; flex-shrink: 0; pointer-events: none; }
-    .widget-toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+    .widget-toggle-label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.85rem; font-weight: 650; color: var(--text-color);
+      flex: 1; min-width: 0;
+      cursor: pointer; padding: 4px 6px; border-radius: 8px;
+      transition: background 0.2s ease;
+      -webkit-user-select: none; user-select: none;
+    }
+    .widget-toggle-label:hover { background: rgba(255, 255, 255, 0.12); }
+    .widget-toggle-label:active { background: rgba(255, 255, 255, 0.20); }
+    .widget-toggle-switch {
+      width: 36px; height: 20px; border-radius: 10px;
+      background: rgba(120, 120, 128, 0.30);
+      position: relative; transition: background 0.25s ease;
+      flex-shrink: 0; cursor: pointer;
+    }
+    .widget-toggle-switch::after {
+      content: ''; position: absolute; top: 2px; left: 2px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
     .widget-toggle-item.active .widget-toggle-switch { background: #34c759; }
     .widget-toggle-item.active .widget-toggle-switch::after { transform: translateX(16px); }
 
-    .glow-slider { width: 100%; -webkit-appearance: none; -moz-appearance: none; appearance: none; height: 6px; border-radius: 3px; background: var(--input-bg); border: 1px solid var(--glass-border); outline: none; margin: 8px 0 0 0; padding: 0; cursor: pointer; display: block; box-sizing: border-box; }
+    /* ═══════════════════════════════════════════════════════════════
+       WIDGET-POSITION-MODAL (Slide-In von links, vertikale Zahlen)
+       ═══════════════════════════════════════════════════════════════ */
+    .widget-pos-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1100;
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
+      pointer-events: none;
+      padding-top: calc(env(safe-area-inset-top) + 20px);
+      padding-left: 20px;
+      padding-right: 20px;
+      padding-bottom: calc(env(safe-area-inset-bottom) + 20px);
+    }
+    .widget-pos-overlay.open { pointer-events: auto; }
+    .widget-pos-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .widget-pos-overlay.open .widget-pos-backdrop { opacity: 1; }
+    .widget-pos-panel {
+      position: relative;
+      width: 100%;
+      max-width: 320px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 22px;
+      border-radius: 26px;
+      background: linear-gradient(145deg, var(--glass-sheen-a), var(--glass-sheen-b)), var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(45px) saturate(120%);
+      -webkit-backdrop-filter: blur(45px) saturate(120%);
+      box-shadow: 0 45px 100px rgba(0,0,0,0.35), inset 0 1px 0 var(--glass-highlight);
+      transform: translateX(-120%);
+      opacity: 0;
+      transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+    }
+    .widget-pos-overlay.open .widget-pos-panel { transform: translateX(0); opacity: 1; }
+
+    .widget-pos-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+    .widget-pos-icon {
+      width: 44px; height: 44px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(145deg, var(--glass-sheen-a), var(--glass-sheen-b)), var(--input-bg);
+      border: 1px solid var(--glass-border);
+      font-size: 1.35rem;
+      flex-shrink: 0;
+    }
+    .widget-pos-title {
+      font-size: 1.05rem;
+      font-weight: 750;
+      color: var(--text-color);
+      line-height: 1.2;
+    }
+    .widget-pos-subtitle {
+      font-size: 0.72rem;
+      color: var(--text-sub);
+      margin-top: 2px;
+    }
+    .widget-pos-hint {
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      margin-top: 12px;
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+
+    .widget-pos-numbers {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .widget-pos-num-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: var(--input-bg);
+      border: 1px solid var(--glass-border);
+      cursor: pointer;
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                  background 0.25s ease,
+                  border-color 0.25s ease,
+                  box-shadow 0.35s ease;
+      -webkit-user-select: none; user-select: none;
+    }
+    .widget-pos-num-item:hover {
+      background: rgba(255, 255, 255, 0.28);
+      transform: translateX(3px);
+    }
+    .widget-pos-num-item:active { transform: scale(0.98); }
+    .widget-pos-num-item.current {
+      border-color: var(--accent-color);
+      background: color-mix(in srgb, var(--accent-color) 18%, var(--input-bg));
+      transform: scale(1.04) translateZ(0);
+      box-shadow:
+        0 12px 30px color-mix(in srgb, var(--accent-color) 35%, transparent),
+        0 0 0 1px var(--accent-color),
+        inset 0 1px 0 var(--glass-highlight);
+      z-index: 2;
+    }
+    .widget-pos-num-item.current .num-label { font-weight: 800; }
+
+    .widget-pos-num-item .num-circle {
+      width: 34px; height: 34px;
+      border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid var(--glass-border);
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: var(--text-sub);
+      flex-shrink: 0;
+      transition: background 0.25s ease, color 0.25s ease, transform 0.35s ease, box-shadow 0.35s ease;
+    }
+    .widget-pos-num-item.current .num-circle {
+      background: var(--accent-color, #007aff);
+      color: #fff;
+      border-color: transparent;
+      transform: scale(1.1);
+      box-shadow: 0 6px 18px color-mix(in srgb, var(--accent-color) 55%, transparent);
+    }
+
+    .widget-pos-num-item .num-text {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .widget-pos-num-item .num-label {
+      font-size: 0.85rem;
+      font-weight: 650;
+      color: var(--text-color);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: font-weight 0.2s ease;
+    }
+    .widget-pos-num-item .num-sub {
+      font-size: 0.68rem;
+      color: var(--text-sub);
+    }
+
+    .widget-pos-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* SLIDER */
+    .glow-slider {
+      width: 100%; -webkit-appearance: none; -moz-appearance: none; appearance: none;
+      height: 6px; border-radius: 3px; background: var(--input-bg); border: 1px solid var(--glass-border);
+      outline: none; margin: 8px 0 0 0; padding: 0; cursor: pointer; display: block; box-sizing: border-box;
+    }
     .glow-slider::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: transparent; border: none; padding: 0; margin: 0; }
     .glow-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--text-color); cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.25); border: none; margin-top: -6px; }
     .glow-slider::-moz-range-track { height: 6px; border-radius: 3px; background: transparent; border: none; padding: 0; margin: 0; }
@@ -249,7 +478,6 @@
     .tt-edit-btn.active { background: linear-gradient(135deg, rgba(255,255,255,0.35), rgba(255,255,255,0.10)), var(--glass-bg); border-color: var(--text-color); }
     .tt-slot.edit-mode { cursor: pointer; border-style: dashed; pointer-events: auto; }
     .tt-slot.edit-mode:hover { background: rgba(255,255,255,0.28); transform: scale(1.02); }
-
     .tt-add-btn { text-align: center; font-size: 0.85rem; font-weight: 700; color: var(--text-color); padding: 12px; background: var(--input-bg); border: 1px dashed var(--glass-border); border-radius: 14px; cursor: pointer; margin-top: 4px; transition: 0.2s; }
     .tt-add-btn:hover { background: rgba(255,255,255,0.28); }
 
@@ -352,7 +580,11 @@
     .weight-option.active { border-color: var(--text-color); background: color-mix(in srgb, var(--text-color) 12%, var(--input-bg)); }
     .weight-option .weight-pct { font-size: 0.72rem; color: var(--text-sub); }
 
-    @media (max-width: 480px) { body { padding: 20px 14px; } .app-container { max-width: 100%; } .glass-menu { right: -4px; width: min(310px, calc(100vw - 28px)); } }
+    @media (max-width: 480px) {
+      body { padding: calc(20px + env(safe-area-inset-top)) 14px calc(20px + env(safe-area-inset-bottom)) 14px; }
+      .app-container { max-width: 100%; }
+      .glass-menu { right: -4px; width: min(310px, calc(100vw - 28px)); }
+    }
 
     @media print {
       body * { visibility: hidden; }
@@ -360,7 +592,7 @@
       .app-container { position: absolute; left: 0; top: 0; padding: 0; }
       .pattern-layer, body::before, body::after,
       .quick-input-bar, .header-actions, .icon-btn,
-      .tt-expand-btn, .modal-overlay { display: none !important; }
+      .tt-expand-btn, .modal-overlay, .widget-pos-overlay { display: none !important; }
       body { background: white !important; padding: 20px; }
       .overview-card, .subject-card, .timetable-preview-vertical, .homework-box { background: white !important; border: 1px solid #ddd !important; box-shadow: none !important; backdrop-filter: none !important; }
     }
@@ -372,7 +604,7 @@
   <div class="pattern-layer" id="patternLayer"></div>
   <div class="app-container">
 
-    <div class="app-header">
+<div class="app-header">
       <div class="greeting-box">
         <div class="app-title">GradeFlow 📚</div>
         <div class="greeting-subtitle" id="greetingText">Guten Tag</div>
@@ -410,8 +642,8 @@
               </div>
               <div class="menu-category-content">
                 <div class="menu-section">
-                  <div class="menu-label">Welche Slides anzeigen?</div>
-                  <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom: 8px;">Tippe zum Ein-/Ausschalten.</div>
+                  <div class="menu-label">Slides & Position</div>
+                  <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom: 8px;">Tippe auf den <strong>Namen</strong>, um die Position zu ändern. Der Schalter schaltet an/aus.</div>
                   <div id="widgetSlidesToggles" style="display: flex; flex-direction: column; gap: 6px;"></div>
                 </div>
               </div>
@@ -509,6 +741,27 @@
       <div class="homework-list" id="homeworkList"></div>
     </div>
 
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       WIDGET-POSITION-MODAL (Slide-In von links)
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="widget-pos-overlay" id="widgetPosOverlay">
+    <div class="widget-pos-backdrop" onclick="closeWidgetPosModal()"></div>
+    <div class="widget-pos-panel">
+      <div class="widget-pos-header">
+        <div class="widget-pos-icon" id="widgetPosIcon">📊</div>
+        <div>
+          <div class="widget-pos-title" id="widgetPosTitle">Gesamtdurchschnitt</div>
+          <div class="widget-pos-subtitle">Position in der Liste</div>
+        </div>
+      </div>
+      <div class="widget-pos-hint">Wähle die neue Position. Die anderen Widgets rutschen automatisch nach.</div>
+      <div class="widget-pos-numbers" id="widgetPosNumbers"></div>
+      <div class="widget-pos-actions">
+        <button class="btn-cancel" onclick="closeWidgetPosModal()">Abbrechen</button>
+      </div>
+    </div>
   </div>
 
   <!-- MODALS -->
@@ -623,15 +876,9 @@
       <div style="margin-bottom: 12px;">
         <div class="menu-label">Fällig am</div>
         <div class="glass-date-picker" id="homeworkDatePicker">
-          <div class="date-part" style="flex:1.4;">
-            <select id="homeworkDateDay" onchange="updateDatePreview()"></select>
-          </div>
-          <div class="date-part" style="flex:2;">
-            <select id="homeworkDateMonth" onchange="updateDatePreview()"></select>
-          </div>
-          <div class="date-part" style="flex:1.4;">
-            <select id="homeworkDateYear" onchange="updateDatePreview()"></select>
-          </div>
+          <div class="date-part" style="flex:1.4;"><select id="homeworkDateDay" onchange="updateDatePreview()"></select></div>
+          <div class="date-part" style="flex:2;"><select id="homeworkDateMonth" onchange="updateDatePreview()"></select></div>
+          <div class="date-part" style="flex:1.4;"><select id="homeworkDateYear" onchange="updateDatePreview()"></select></div>
         </div>
         <div class="glass-date-preview" id="homeworkDatePreview">—</div>
       </div>
@@ -874,15 +1121,24 @@
         </div>
         <div class="menu-category-content" style="padding: 0 12px;">
           <div style="display: flex; flex-direction: column; gap: 6px; padding-bottom: 8px; padding-top: 4px;">
-            <div style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--text-sub); margin-top: 4px; margin-bottom: 2px;">⚖️ Noten-Gewichtung</div>
-            <div style="font-size: 0.68rem; color: var(--text-sub); margin-bottom: 6px;">Wie zählen Klausuren und Tests?</div>
-            <div class="weight-options" id="weightOptions">
-              <div class="weight-option" data-weight="60-40" onclick="setWeight('60-40')"><span>Standard</span><span class="weight-pct">60% / 40%</span></div>
-              <div class="weight-option" data-weight="70-30" onclick="setWeight('70-30')"><span>Klausuren mehr</span><span class="weight-pct">70% / 30%</span></div>
-              <div class="weight-option" data-weight="50-50" onclick="setWeight('50-50')"><span>Beide gleich</span><span class="weight-pct">50% / 50%</span></div>
-              <div class="weight-option" data-weight="40-60" onclick="setWeight('40-60')"><span>Tests mehr</span><span class="weight-pct">40% / 60%</span></div>
+            
+            <!-- NEU: Unter-Kategorie für Gewichtung -->
+            <div class="sub-category" id="weightSubCategory">
+              <div class="sub-category-header" onclick="toggleWeightSubCategory()">
+                <span>⚖️ Noten-Gewichtung</span><span class="sub-category-arrow">▼</span>
+              </div>
+              <div class="sub-category-content">
+                <div style="font-size: 0.68rem; color: var(--text-sub); margin-bottom: 6px;">Wie zählen Klausuren und Tests?</div>
+                <div class="weight-options" id="weightOptions">
+                  <div class="weight-option" data-weight="60-40" onclick="setWeight('60-40')"><span>Standard</span><span class="weight-pct">60% / 40%</span></div>
+                  <div class="weight-option" data-weight="70-30" onclick="setWeight('70-30')"><span>Klausuren mehr</span><span class="weight-pct">70% / 30%</span></div>
+                  <div class="weight-option" data-weight="50-50" onclick="setWeight('50-50')"><span>Beide gleich</span><span class="weight-pct">50% / 50%</span></div>
+                  <div class="weight-option" data-weight="40-60" onclick="setWeight('40-60')"><span>Tests mehr</span><span class="weight-pct">40% / 60%</span></div>
+                </div>
+              </div>
             </div>
-            <div style="height: 1px; background: var(--glass-border); margin: 8px 0;"></div>
+
+            <div style="height: 1px; background: var(--glass-border); margin: 4px 0;"></div>
             <button class="btn-cancel" style="width: 100%; padding: 8px; font-size: 0.74rem;" onclick="openSubjectEditModal()">✏️ Name & Icon ändern</button>
             <button class="btn-cancel" style="width: 100%; padding: 8px; font-size: 0.74rem; color: #ff3b30; border-color: rgba(255,59,48,0.3);" onclick="promptDeleteSubject()">🗑️ Fach löschen</button>
           </div>
@@ -895,6 +1151,10 @@
   </div>
 
   <script>
+
+/* ═══════════════════════════════════════════════════════════════
+       STATE
+       ═══════════════════════════════════════════════════════════════ */
     let appSettings = {
       userName: "", theme: "auto", accentColor: "#ffffff", patternShape: "circle", patternSize: 130,
       glowIntensity: 0.005, examsList: [],
@@ -902,7 +1162,8 @@
       subjectColors: {},
       homework: [],
       weights: {},
-      slideEnabled: { avg: true, exam: true, cal: true, hw: true }
+      slideEnabled: { avg: true, exam: true, cal: true, hw: true },
+      slideOrder: ["avg", "exam", "cal", "hw"]
     };
 
     let selectedEmoji = "📚"; let selectedEditEmoji = "📚";
@@ -919,16 +1180,27 @@
     let editingHomeworkId = null; let pendingDeleteHomeworkId = null;
     let pendingHomeworkCreateSubject = null;
     let subjectsData = [];
+    let currentPosWidgetId = null;
 
     const FALLBACK_COLOR = "#007aff";
     const MONTH_NAMES_LONG = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+    const DEFAULT_SLIDE_ORDER = ["avg", "exam", "cal", "hw"];
 
+    /* ═══════════════════════════════════════════════════════════════
+       INIT
+       ═══════════════════════════════════════════════════════════════ */
     function initApp() {
       const saved = localStorage.getItem("gradeflow_settings");
       if (saved) { try { appSettings = { ...appSettings, ...JSON.parse(saved) }; } catch (e) {} }
       if (!appSettings.slideEnabled || Object.keys(appSettings.slideEnabled).length === 0) {
         appSettings.slideEnabled = { avg: true, exam: true, cal: true, hw: true };
       }
+      if (!appSettings.slideOrder || !Array.isArray(appSettings.slideOrder)) {
+        appSettings.slideOrder = [...DEFAULT_SLIDE_ORDER];
+      }
+      appSettings.slideOrder = appSettings.slideOrder.filter(id => DEFAULT_SLIDE_ORDER.includes(id));
+      DEFAULT_SLIDE_ORDER.forEach(id => { if (!appSettings.slideOrder.includes(id)) appSettings.slideOrder.push(id); });
+
       if (!appSettings.timetable) appSettings.timetable = { 1: [], 2: [], 3: [], 4: [], 5: [] };
       if (!appSettings.subjectColors) appSettings.subjectColors = {};
       if (!appSettings.homework) appSettings.homework = [];
@@ -1011,6 +1283,9 @@
       return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
     }
 
+    /* ═══════════════════════════════════════════════════════════════
+       FARBE PRO FACH
+       ═══════════════════════════════════════════════════════════════ */
     function getColorForSubject(subjectName) {
       if (!subjectName) return FALLBACK_COLOR;
       const key = subjectName.trim();
@@ -1032,6 +1307,9 @@
       saveSettings();
     }
 
+    /* ═══════════════════════════════════════════════════════════════
+       GEWICHTUNG & DURCHSCHNITT
+       ═══════════════════════════════════════════════════════════════ */
     function getWeights(subjectName) {
       const w = (appSettings.weights && appSettings.weights[subjectName]) || "60-40";
       const parts = w.split("-").map(Number);
@@ -1057,6 +1335,9 @@
       if (c) c.textContent = `${subjectsData.length} Fächer aktiv`;
     }
 
+    /* ═══════════════════════════════════════════════════════════════
+       FÄCHER
+       ═══════════════════════════════════════════════════════════════ */
     function renderSubjects() {
       const list = document.getElementById("subjectList"); list.innerHTML = "";
       subjectsData.forEach(sub => {
@@ -1088,6 +1369,7 @@
       const avg = getSubjectAverage(sub);
       document.getElementById("detailModalMeta").textContent = `Gesamtschnitt: ${avg !== null ? avg.toFixed(1) : "—"}`;
       document.getElementById("detailFolderCategory").classList.remove("expanded");
+      document.getElementById("weightSubCategory").classList.remove("expanded");
 
       const klC = document.getElementById("detailKlausurenList"); klC.innerHTML = "";
       if (sub.klausuren && sub.klausuren.length > 0) {
@@ -1142,6 +1424,7 @@
 
     function closeSubjectDetail() { document.getElementById("subjectDetailModal").classList.remove("open"); checkModalState(); currentActiveSubjectName = ""; }
     function toggleDetailFolder() { document.getElementById("detailFolderCategory").classList.toggle("expanded"); }
+    function toggleWeightSubCategory() { document.getElementById("weightSubCategory").classList.toggle("expanded"); }
 
     function calculateWhatIf(target) {
       document.getElementById("targetGradeLabel").textContent = target;
@@ -1157,6 +1440,9 @@
       return found ? found.emoji : "📝";
     }
 
+    /* ═══════════════════════════════════════════════════════════════
+       STUNDENPLAN
+       ═══════════════════════════════════════════════════════════════ */
     function getDateForDay(dayNum) {
       const current = new Date();
       const currentDay = current.getDay() === 0 ? 7 : current.getDay();
@@ -1430,6 +1716,9 @@
       renderDayModalContent();
     }
 
+    /* ═══════════════════════════════════════════════════════════════
+       HAUSAUFGABEN
+       ═══════════════════════════════════════════════════════════════ */
     function getHomeworkStatus(hw) {
       if (hw.done) return { text: "Erledigt", color: "#34c759", done: true };
       const t = new Date(); t.setHours(0, 0, 0, 0);
@@ -1683,6 +1972,9 @@
       }
     }
 
+    /* ═══════════════════════════════════════════════════════════════
+       KALENDER
+       ═══════════════════════════════════════════════════════════════ */
     function openCalendarModal() { renderBigCalendar(); document.body.classList.add("modal-open"); document.getElementById("calendarModal").classList.add("open"); }
     function closeCalendarModal() { document.getElementById("calendarModal").classList.remove("open"); renderCalendarPreviewGrid(); checkModalState(); }
     function changeMonth(dir) { currentCalendarDate.setMonth(currentCalendarDate.getMonth() + dir); renderBigCalendar(); }
@@ -1855,20 +2147,26 @@
       });
     }
 
+    /* ═══════════════════════════════════════════════════════════════
+       SLIDE-VERWALTUNG + WIDGET-POSITION
+       ═══════════════════════════════════════════════════════════════ */
     function getSlideDefinitions() {
       return [
-        { id: "avg", label: "📊 Gesamtdurchschnitt", html: `<div class="widget-slide" onclick="openAverageDetailModal()"><div class="overview-sub">Gesamtdurchschnitt</div><div class="overview-grade" id="overallGrade">—</div><div class="overview-sub" id="subjectCount">${subjectsData.length} Fächer aktiv</div></div>` },
-        { id: "exam", label: "📝 Nächste Klausur", html: `<div class="widget-slide" onclick="startExamWizard()"><div class="overview-sub">Nächste Klausur</div><div class="overview-grade" style="font-size: 2rem; margin: 6px 0;" id="widgetExamSubject">—</div><div class="overview-sub" style="color: var(--text-color); font-weight: 800;" id="widgetExamMeta">—</div></div>` },
-        { id: "cal", label: "📅 Kalender", html: `<div class="widget-slide" onclick="openCalendarModal()"><div class="calendar-wrapper"><div class="overview-sub" style="margin-bottom: 1px;">KALENDER</div><div class="calendar-grid-preview" id="mainCalendarGrid"></div></div></div>` },
-        { id: "hw", label: "📚 Hausaufgaben", html: `<div class="widget-slide" onclick="scrollToHomework()"><div class="overview-sub" style="margin-bottom: 6px;">HAUSAUFGABEN</div><div class="widget-homework-list" id="widgetHomeworkList"></div></div>` }
+        { id: "avg", label: "📊 Gesamtdurchschnitt", icon: "📊", html: `<div class="widget-slide" onclick="openAverageDetailModal()"><div class="overview-sub">Gesamtdurchschnitt</div><div class="overview-grade" id="overallGrade">—</div><div class="overview-sub" id="subjectCount">${subjectsData.length} Fächer aktiv</div></div>` },
+        { id: "exam", label: "📝 Nächste Klausur", icon: "📝", html: `<div class="widget-slide" onclick="startExamWizard()"><div class="overview-sub">Nächste Klausur</div><div class="overview-grade" style="font-size: 2rem; margin: 6px 0;" id="widgetExamSubject">—</div><div class="overview-sub" style="color: var(--text-color); font-weight: 800;" id="widgetExamMeta">—</div></div>` },
+        { id: "cal", label: "📅 Kalender", icon: "📅", html: `<div class="widget-slide" onclick="openCalendarModal()"><div class="calendar-wrapper"><div class="overview-sub" style="margin-bottom: 1px;">KALENDER</div><div class="calendar-grid-preview" id="mainCalendarGrid"></div></div></div>` },
+        { id: "hw", label: "📚 Hausaufgaben", icon: "📚", html: `<div class="widget-slide" onclick="scrollToHomework()"><div class="overview-sub" style="margin-bottom: 6px;">HAUSAUFGABEN</div><div class="widget-homework-list" id="widgetHomeworkList"></div></div>` }
       ];
     }
 
     function applySlideOrder(save = true) {
-      const defs = getSlideDefinitions();
+      const allDefs = getSlideDefinitions();
+      const order = appSettings.slideOrder || [...DEFAULT_SLIDE_ORDER];
       const enabled = appSettings.slideEnabled || {};
-      const active = defs.filter(d => enabled[d.id] !== false);
-      const list = active.length > 0 ? active : defs;
+
+      const orderedDefs = order.map(id => allDefs.find(d => d.id === id)).filter(Boolean);
+      const activeDefs = orderedDefs.filter(d => enabled[d.id] !== false);
+      const list = activeDefs.length > 0 ? activeDefs : orderedDefs.slice(0, 1);
 
       document.getElementById("widgetSlides").innerHTML = list.map(d => d.html).join("");
       updateIndicators(list.length);
@@ -1896,60 +2194,142 @@
       const c = document.getElementById("widgetSlidesToggles");
       if (!c) return;
       c.innerHTML = "";
-      const defs = getSlideDefinitions();
+      const allDefs = getSlideDefinitions();
+      const order = appSettings.slideOrder || [...DEFAULT_SLIDE_ORDER];
+      const orderedDefs = order.map(id => allDefs.find(d => d.id === id)).filter(Boolean);
 
-      defs.forEach(d => {
+      orderedDefs.forEach(d => {
         const isOn = appSettings.slideEnabled[d.id] !== false;
+        const posNum = appSettings.slideOrder.indexOf(d.id) + 1;
         const item = document.createElement("div");
         item.className = "widget-toggle-item" + (isOn ? " active" : "");
         item.innerHTML = `
-          <div class="widget-toggle-label">${d.label}</div>
+          <div class="widget-toggle-label" data-open-pos="1">
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:7px;background:rgba(120,120,128,0.20);font-size:0.7rem;font-weight:800;flex-shrink:0;">${posNum}</span>
+            <span>${d.label}</span>
+          </div>
           <div class="widget-toggle-switch"></div>
         `;
-        item.onclick = function(e) {
+
+        // Label-Klick → Modal öffnen
+        const labelEl = item.querySelector("[data-open-pos]");
+        labelEl.addEventListener("click", (e) => {
           e.stopPropagation();
+          openWidgetPosModal(d.id);
+        });
 
+        // Switch-Klick → Toggle
+        item.querySelector(".widget-toggle-switch").addEventListener("click", (e) => {
+          e.stopPropagation();
           const currentlyOn = appSettings.slideEnabled[d.id] !== false;
-          const activeCount = defs.filter(x => appSettings.slideEnabled[x.id] !== false).length;
+          const activeCount = allDefs.filter(x => appSettings.slideEnabled[x.id] !== false).length;
           if (currentlyOn && activeCount <= 1) return;
-
           appSettings.slideEnabled[d.id] = !currentlyOn;
           saveSettings();
           item.classList.toggle("active", !currentlyOn);
           applySlideOrder(false);
-        };
+        });
+
         c.appendChild(item);
       });
+    }
+
+    /* ─── WIDGET-POSITION-MODAL ─── */
+    function openWidgetPosModal(widgetId) {
+      currentPosWidgetId = widgetId;
+      const allDefs = getSlideDefinitions();
+      const def = allDefs.find(d => d.id === widgetId);
+      if (!def) return;
+
+      document.getElementById("widgetPosIcon").textContent = def.icon;
+      document.getElementById("widgetPosTitle").textContent = def.label.replace(/^[^\s]+\s/, "");
+
+      const container = document.getElementById("widgetPosNumbers");
+      container.innerHTML = "";
+
+      const order = appSettings.slideOrder || [...DEFAULT_SLIDE_ORDER];
+      const currentPos = order.indexOf(widgetId) + 1;
+
+      for (let i = 1; i <= order.length; i++) {
+        const targetId = order[i - 1];
+        const targetDef = allDefs.find(d => d.id === targetId);
+        if (!targetDef) continue;
+
+        const isCurrent = i === currentPos;
+        const item = document.createElement("div");
+        item.className = "widget-pos-num-item" + (isCurrent ? " current" : "");
+        item.innerHTML = `
+          <div class="num-circle">${i}</div>
+          <div class="num-text">
+            <div class="num-label">${targetDef.label}</div>
+            <div class="num-sub">${isCurrent ? "Aktuelle Position" : "Wird an diese Stelle"}</div>
+          </div>
+        `;
+        item.onclick = () => {
+          if (i === currentPos) { closeWidgetPosModal(); return; }
+          moveWidgetToPosition(currentPosWidgetId, i);
+        };
+        container.appendChild(item);
+      }
+
+      document.getElementById("widgetPosOverlay").classList.add("open");
+    }
+
+    
+function closeWidgetPosModal() {
+      document.getElementById("widgetPosOverlay").classList.remove("open");
+      currentPosWidgetId = null;
+      // Menü bleibt offen → erneut öffnen, falls es durch einen Klick geschlossen wurde
+      setTimeout(() => {
+        const menu = document.getElementById("glassMenu");
+        if (menu && !menu.classList.contains("open")) {
+          menu.classList.add("open");
+        }
+      }, 50);
+    }
+
+   function moveWidgetToPosition(widgetId, targetPos) {
+      const order = appSettings.slideOrder || [...DEFAULT_SLIDE_ORDER];
+      const currentIdx = order.indexOf(widgetId);
+      if (currentIdx === -1) return;
+      const newIdx = targetPos - 1;
+
+      // Aus dem Array entfernen
+      order.splice(currentIdx, 1);
+      // An neue Position einsetzen
+      order.splice(newIdx, 0, widgetId);
+
+      appSettings.slideOrder = order;
+      saveSettings();
+
+      // Kurze Verzögerung für weiche Animation
+      setTimeout(() => {
+        closeWidgetPosModal();
+        renderWidgetToggles();
+        applySlideOrder(false);
+      }, 200);
     }
 
     function setupSwipeWidget() {
       const card = document.getElementById("overviewCard");
       if (!card) return;
-
       let startY = 0, startX = 0, hasMoved = false;
 
       card.addEventListener("touchstart", e => {
         if (e.touches.length !== 1) return;
-        startY = e.touches[0].clientY;
-        startX = e.touches[0].clientX;
-        hasMoved = false;
+        startY = e.touches[0].clientY; startX = e.touches[0].clientX; hasMoved = false;
       }, { passive: true });
 
       card.addEventListener("touchmove", e => {
         if (e.touches.length !== 1) return;
         const dy = Math.abs(e.touches[0].clientY - startY);
         const dx = Math.abs(e.touches[0].clientX - startX);
-        if (dy > 8 || dx > 8) {
-          hasMoved = true;
-          e.preventDefault();
-        }
+        if (dy > 8 || dx > 8) { hasMoved = true; e.preventDefault(); }
       }, { passive: false });
 
       card.addEventListener("touchend", e => {
-        const endY = e.changedTouches[0].clientY;
-        const diff = startY - endY;
+        const diff = startY - e.changedTouches[0].clientY;
         const maxSlide = document.querySelectorAll(".indicator-dot").length - 1;
-
         if (hasMoved && Math.abs(diff) > 40) {
           if (diff > 0 && currentSlide < maxSlide) setWidgetSlide(currentSlide + 1);
           else if (diff < 0 && currentSlide > 0) setWidgetSlide(currentSlide - 1);
@@ -1974,6 +2354,9 @@
       document.querySelectorAll(".indicator-dot").forEach((d, i) => d.classList.toggle("active", i === index));
     }
 
+    /* ═══════════════════════════════════════════════════════════════
+       DESIGN
+       ═══════════════════════════════════════════════════════════════ */
     let patternTimeout;
     function scheduleRenderPattern() { clearTimeout(patternTimeout); patternTimeout = setTimeout(renderPattern, 50); }
 
@@ -1998,9 +2381,16 @@
     }
 
     window.addEventListener("click", e => {
+      // Wenn das Widget-Position-Modal offen ist → NICHT schließen
+      const posOverlay = document.getElementById("widgetPosOverlay");
+      if (posOverlay && posOverlay.classList.contains("open")) return;
+      // Wenn irgendein Modal offen ist → NICHT schließen
+      if (document.querySelectorAll(".modal-overlay.open").length > 0) return;
+
       const menu = document.getElementById("glassMenu");
       const btn = document.querySelector(".header-actions");
       if (e.target.closest("#widgetSlidesToggles")) return;
+      if (e.target.closest("#widgetPosOverlay")) return;
       if (menu.contains(e.target) || btn.contains(e.target)) return;
       if (menu.classList.contains("open")) {
         menu.classList.remove("open");
@@ -2102,6 +2492,9 @@
       saveSettings();
     }
 
+    /* ═══════════════════════════════════════════════════════════════
+       NOTEN EINGEBEN
+       ═══════════════════════════════════════════════════════════════ */
     function handleQuickInput(e) { if (e.key === "Enter") submitQuickInput(); }
     function submitQuickInput() {
       const input = document.getElementById("quickInput");
