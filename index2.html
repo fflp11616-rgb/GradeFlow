@@ -1,0 +1,2415 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta id="themeColorMeta" name="theme-color" content="#eef2f8">
+  <title>GradeFlow – Dein Notenmanager</title>
+  <style>
+    @property --accent-color { syntax: '<color>'; inherits: true; initial-value: transparent; }
+    @property --ambient-1 { syntax: '<color>'; inherits: true; initial-value: transparent; }
+    @property --ambient-2 { syntax: '<color>'; inherits: true; initial-value: transparent; }
+    @property --ambient-3 { syntax: '<color>'; inherits: true; initial-value: transparent; }
+    @property --has-accent { syntax: '<number>'; inherits: true; initial-value: 0; }
+
+    :root {
+      --accent-color: transparent;
+      --accent-rgb: 255, 255, 255;
+      --has-accent: 0;
+      --bg-1: #eef2f8;
+      --bg-2: #e2e8f2;
+      --glass-bg: rgba(255, 255, 255, 0.28);
+      --glass-menu-bg: rgba(255, 255, 255, 0.35);
+      --glass-border: rgba(255, 255, 255, 0.75);
+      --glass-highlight: rgba(255, 255, 255, 0.95);
+      --glass-sheen-a: rgba(255, 255, 255, 0.55);
+      --glass-sheen-b: rgba(255, 255, 255, 0.08);
+      --text-color: #161618;
+      --text-sub: rgba(22, 22, 24, 0.55);
+      --button-bg: rgba(22, 22, 24, 0.88);
+      --button-text: #fff;
+      --input-bg: rgba(255, 255, 255, 0.35);
+      --glass-shadow:
+        0 24px 70px rgba(0, 0, 0, 0.10),
+        0 5px 18px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95);
+      --ambient-1: transparent;
+      --ambient-2: transparent;
+      --ambient-3: transparent;
+      --glow-intensity: 0.005;
+    }
+
+    body.dark-mode {
+      --bg-1: #07080c;
+      --bg-2: #101218;
+      --glass-bg: rgba(25, 27, 34, 0.30);
+      --glass-menu-bg: rgba(20, 22, 28, 0.30);
+      --glass-border: rgba(255, 255, 255, 0.14);
+      --glass-highlight: rgba(255, 255, 255, 0.18);
+      --glass-sheen-a: rgba(255, 255, 255, 0.08);
+      --glass-sheen-b: rgba(255, 255, 255, 0.01);
+      --text-color: #f5f5f7;
+      --text-sub: rgba(245, 245, 247, 0.52);
+      --button-bg: rgba(255, 255, 255, 0.92);
+      --button-text: #111;
+      --input-bg: rgba(255, 255, 255, 0.06);
+      --glass-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.65),
+        0 8px 25px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    html, body, div, section { scrollbar-width: none !important; -ms-overflow-style: none !important; }
+    ::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+    button, input, select, textarea, div, span { outline: none !important; box-shadow: none !important; }
+    *:focus, *:active, *:-webkit-autofill { outline: none !important; box-shadow: none !important; background-color: transparent; }
+    *:focus-visible { outline: 2px solid var(--accent-color, #007aff) !important; outline-offset: 2px; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       OVERSCROLL-FIX
+       ═══════════════════════════════════════════════════════════════
+       html und body haben dieselbe Farbe wie der Haupt-Hintergrund
+       → Wenn Safari trotzdem bounct, sieht man KEIN Schwarz/Weiß.
+       overscroll-behavior: none → verhindert Bounce in Chrome/Firefox.
+       ═══════════════════════════════════════════════════════════════ */
+    html {
+      background-color: #eef2f8;
+      transition: background-color 0.4s ease;
+      overscroll-behavior: none;
+      overscroll-behavior-y: none;
+    }
+    html:has(body.dark-mode) {
+      background-color: #07080c;
+    }
+    body {
+      overscroll-behavior: none;
+      overscroll-behavior-y: none;
+    }
+
+    body {
+      min-height: 100vh; color: var(--text-color);
+      background:
+        radial-gradient(circle at 10% 5%, var(--ambient-1) 0%, transparent 38%),
+        radial-gradient(circle at 90% 20%, var(--ambient-2) 0%, transparent 35%),
+        radial-gradient(circle at 50% 100%, var(--ambient-3) 0%, transparent 40%),
+        linear-gradient(145deg, var(--bg-1), var(--bg-2));
+      background-attachment: fixed; padding: 40px 20px; display: flex; justify-content: center; position: relative;
+      transition: background 0.8s ease, color 0.4s ease; overflow-x: hidden;
+    }
+    body::before, body::after { content: ""; position: fixed; width: 450px; height: 450px; border-radius: 50%; pointer-events: none; filter: blur(100px); opacity: calc(var(--has-accent) * (0.12 + var(--glow-intensity) * 6)); z-index: 0; transition: background 0.8s ease, opacity 0.8s ease; }
+    body::before { top: -180px; left: -160px; background: var(--accent-color); }
+    body::after { right: -180px; bottom: -180px; background: var(--accent-color); }
+
+    /* ═══════════════════════════════════════════════════════════════
+       PATTERN-LAYER
+       ═══════════════════════════════════════════════════════════════
+       inset: -300px → Der Layer reicht 300px über den Viewport hinaus
+       → Beim Bounce sieht man weiterhin Pattern, KEIN leerer Rand.
+       ═══════════════════════════════════════════════════════════════ */
+    .pattern-layer {
+      position: fixed;
+      top: -300px;
+      left: -300px;
+      right: -300px;
+      bottom: -300px;
+      background-repeat: repeat;
+      background-size: 130px 130px;
+      opacity: calc(0.85 + var(--glow-intensity) * 8);
+      pointer-events: none;
+      z-index: 0;
+      transform: translateZ(0);
+      -webkit-mask-image: radial-gradient(ellipse 90% 90% at center, black 45%, transparent 95%);
+      mask-image: radial-gradient(ellipse 90% 90% at center, black 45%, transparent 95%);
+      will-change: opacity;
+      transition: opacity 0.6s ease;
+    }
+
+    .app-container { width: 100%; max-width: 440px; position: relative; z-index: 1; transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    body.modal-open .app-container > *:not(.modal-overlay) { opacity: 0; pointer-events: none; transform: scale(0.98); transition: opacity 0.3s ease, transform 0.3s ease; }
+
+    .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+    .greeting-box { display: flex; flex-direction: column; }
+    .app-title { font-size: 1.45rem; font-weight: 750; letter-spacing: -0.7px; }
+    .greeting-subtitle { margin-top: 3px; font-size: 0.82rem; font-weight: 600; color: var(--text-sub); }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+
+    .icon-btn { width: 42px; height: 42px; border-radius: 14px; border: 1px solid var(--glass-border); background: linear-gradient(135deg, var(--glass-sheen-a), var(--glass-sheen-b)), var(--glass-bg); color: var(--text-color); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; backdrop-filter: blur(25px) saturate(115%); -webkit-backdrop-filter: blur(25px) saturate(115%); box-shadow: var(--glass-shadow); transition: transform 0.3s cubic-bezier(.16,1,.3,1); }
+    .icon-btn:hover { transform: scale(1.06); }
+    .icon-btn:active { transform: scale(0.94); }
+
+    .glass-menu { position: absolute; top: 54px; right: 0; width: 310px; max-height: 75vh; overflow-y: auto; padding: 16px; border-radius: 25px; background: linear-gradient(135deg, rgba(255,255,255,0.20), rgba(255,255,255,0.05)), var(--glass-menu-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(50px) saturate(130%); -webkit-backdrop-filter: blur(50px) saturate(130%); box-shadow: 0 35px 80px rgba(0,0,0,0.12), inset 0 1px 0 var(--glass-highlight); opacity: 0; transform: translateY(-10px) scale(0.96); pointer-events: none; transition: opacity 0.3s ease, transform 0.4s cubic-bezier(.16,1,.3,1); z-index: 100; }
+    .glass-menu.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+
+    .menu-category { margin-bottom: 12px; border-radius: 18px; border: 1px solid var(--glass-border); background: rgba(255, 255, 255, 0.10); overflow: hidden; }
+    body.dark-mode .menu-category { background: rgba(255, 255, 255, 0.04); }
+    .menu-category:last-child { margin-bottom: 0; }
+    .menu-category-header { padding: 14px 16px; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.9px; color: var(--text-color); display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; transition: background 0.2s ease; }
+    .menu-category-header:hover { background: rgba(255, 255, 255, 0.15); }
+    .menu-category-arrow { font-size: 0.75rem; transition: transform 0.3s cubic-bezier(.16,1,.3,1); color: var(--text-sub); }
+    .menu-category.expanded .menu-category-arrow { transform: rotate(180deg); }
+    .menu-category-content { max-height: 0; overflow: hidden; padding: 0 16px; transition: max-height 0.4s cubic-bezier(.16,1,.3,1), padding 0.3s ease; }
+    .menu-category.expanded .menu-category-content { max-height: 420px; padding: 4px 16px 16px 16px; }
+    #detailFolderCategory.expanded .menu-category-content { max-height: 700px; }
+
+    .menu-section { margin-top: 12px; }
+    .menu-label { margin-bottom: 6px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-sub); }
+    .menu-item { width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid transparent; background: transparent; color: var(--text-color); text-align: left; font-size: 0.85rem; font-weight: 650; cursor: pointer; transition: background 0.2s ease; }
+    .menu-item:hover { background: rgba(255, 255, 255, 0.18); border-color: var(--glass-border); }
+
+    .widget-toggle-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 12px; background: var(--input-bg); border: 1px solid var(--glass-border); cursor: pointer; transition: background 0.2s ease; }
+    .widget-toggle-item:hover { background: rgba(255, 255, 255, 0.28); }
+    .widget-toggle-label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 650; color: var(--text-color); pointer-events: none; }
+    .widget-toggle-switch { width: 36px; height: 20px; border-radius: 10px; background: rgba(120, 120, 128, 0.30); position: relative; transition: background 0.25s ease; flex-shrink: 0; pointer-events: none; }
+    .widget-toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+    .widget-toggle-item.active .widget-toggle-switch { background: #34c759; }
+    .widget-toggle-item.active .widget-toggle-switch::after { transform: translateX(16px); }
+
+    .glow-slider { width: 100%; -webkit-appearance: none; -moz-appearance: none; appearance: none; height: 6px; border-radius: 3px; background: var(--input-bg); border: 1px solid var(--glass-border); outline: none; margin: 8px 0 0 0; padding: 0; cursor: pointer; display: block; box-sizing: border-box; }
+    .glow-slider::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: transparent; border: none; padding: 0; margin: 0; }
+    .glow-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--text-color); cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.25); border: none; margin-top: -6px; }
+    .glow-slider::-moz-range-track { height: 6px; border-radius: 3px; background: transparent; border: none; padding: 0; margin: 0; }
+    .glow-slider::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--text-color); cursor: pointer; border: none; box-shadow: 0 2px 6px rgba(0,0,0,0.25); padding: 0; margin: 0; }
+
+    .overview-card { padding: 18px 22px 18px 18px; border-radius: 28px; margin-bottom: 16px; text-align: center; background: linear-gradient(145deg, var(--glass-sheen-a), var(--glass-sheen-b)), var(--glass-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(42px) saturate(120%); -webkit-backdrop-filter: blur(42px) saturate(120%); box-shadow: 0 30px 80px rgba(0,0,0,0.09), inset 0 1px 0 var(--glass-highlight); position: relative; overflow: hidden; user-select: none; touch-action: none; }
+    .overview-card::after { content: ""; position: absolute; width: 220px; height: 120px; left: 50%; top: -70px; transform: translateX(-50%); border-radius: 50%; background: var(--accent-color); filter: blur(60px); opacity: calc(var(--has-accent) * (0.2 + var(--glow-intensity) * 1.2)); pointer-events: none; }
+    .widget-container { position: relative; width: 100%; height: 112px; overflow: hidden; }
+    .widget-slides { display: flex; flex-direction: column; height: 100%; transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
+    .widget-slide { width: 100%; height: 112px; flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; cursor: pointer; }
+    .overview-sub { position: relative; z-index: 1; font-size: 0.70rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1.1px; font-weight: 700; }
+    .overview-grade { position: relative; z-index: 1; margin: 4px 0; font-size: 3rem; font-weight: 800; letter-spacing: -2px; background: linear-gradient(180deg, var(--text-color), color-mix(in srgb, var(--text-color) 70%, transparent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+    .widget-indicators { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 6px; z-index: 5; }
+    .indicator-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-sub); opacity: 0.3; cursor: pointer; transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease; }
+    .indicator-dot.active { opacity: 1; transform: scale(1.3); background: var(--text-color); }
+
+    .calendar-wrapper { width: 100%; max-width: 254px; }
+    .calendar-grid-preview { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-top: 2px; text-align: center; }
+    .calendar-day-header { font-size: 0.52rem; font-weight: 700; color: var(--text-sub); text-transform: uppercase; }
+    .calendar-cell { aspect-ratio: 1.2; display: flex; align-items: center; justify-content: center; border-radius: 4px; font-size: 0.62rem; background: var(--input-bg); border: 1px solid transparent; position: relative; }
+    .calendar-cell.has-exam { border-color: var(--glass-border); background: color-mix(in srgb, var(--accent-color) calc(var(--has-accent) * 35%), var(--input-bg)); font-weight: 700; }
+    .calendar-cell.today-highlight { border: 1.5px solid var(--accent-color); background: color-mix(in srgb, var(--accent-color) calc(var(--has-accent) * 35% + 15%), var(--input-bg)); box-shadow: 0 0 8px color-mix(in srgb, var(--accent-color) 40%, transparent); font-weight: 800; }
+
+    .hw-dots { position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: row; gap: 2px; align-items: center; justify-content: center; pointer-events: none; width: max-content; }
+    .hw-dot { width: 4px; height: 4px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 3px currentColor; display: block; }
+    .hw-dot-more { font-size: 0.42rem; font-weight: 800; opacity: 0.7; margin-left: 1px; line-height: 1; }
+    .calendar-cell .hw-dots { bottom: 1px; gap: 1px; }
+    .calendar-cell .hw-dot { width: 3px; height: 3px; }
+
+    .quick-input-bar { display: flex; gap: 8px; margin-bottom: 20px; }
+    .quick-input { flex: 1; padding: 12px 16px; border-radius: 14px; border: 1px solid var(--glass-border); background: linear-gradient(135deg, var(--glass-sheen-a), var(--glass-sheen-b)), var(--glass-bg); backdrop-filter: blur(35px) saturate(115%); -webkit-backdrop-filter: blur(35px) saturate(115%); color: var(--text-color); font-size: 0.85rem; box-shadow: var(--glass-shadow); }
+    .quick-input::placeholder { color: var(--text-sub); }
+
+    .btn-primary { border: 1px solid var(--glass-border); background: linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.02)), var(--button-bg); color: var(--button-text); padding: 11px 18px; border-radius: 14px; font-size: 0.84rem; font-weight: 650; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.15); transition: transform 0.3s cubic-bezier(.16,1,.3,1), opacity 0.25s ease; }
+    .btn-primary:hover { transform: translateY(-2px); opacity: 0.92; }
+    .btn-primary:active { transform: scale(0.96); }
+
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .section-title { font-weight: 750; font-size: 0.95rem; }
+
+    .subject-card { display: flex; align-items: center; justify-content: space-between; padding: 16px; margin-bottom: 10px; border-radius: 22px; background: linear-gradient(135deg, var(--glass-sheen-a), var(--glass-sheen-b)), var(--glass-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(38px) saturate(115%); -webkit-backdrop-filter: blur(38px) saturate(115%); box-shadow: var(--glass-shadow); position: relative; overflow: hidden; cursor: pointer; transition: transform 0.35s cubic-bezier(.16,1,.3,1); }
+    .subject-card:hover { transform: translateY(-2px) scale(1.005); }
+    .subject-info { display: flex; align-items: center; gap: 14px; }
+    .subject-emoji { width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 15px; background: linear-gradient(145deg, var(--glass-sheen-a), var(--glass-sheen-b)), var(--input-bg); border: 1px solid var(--glass-border); box-shadow: inset 0 1px 0 var(--glass-highlight); font-size: 1.25rem; }
+    .subject-name { font-size: 0.98rem; font-weight: 650; }
+    .subject-meta { margin-top: 2px; font-size: 0.74rem; color: var(--text-sub); }
+    .subject-grade-badge { font-size: 1.15rem; font-weight: 750; padding-right: 2px; }
+
+    .timetable-preview-vertical { padding: 18px; margin-bottom: 24px; border-radius: 22px; background: linear-gradient(135deg, var(--glass-sheen-a), var(--glass-sheen-b)), var(--glass-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(38px) saturate(115%); -webkit-backdrop-filter: blur(38px) saturate(115%); box-shadow: var(--glass-shadow); cursor: pointer; transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1); position: relative; will-change: height; }
+    .timetable-preview-vertical:hover { transform: translateY(-2px) scale(1.005); }
+    .timetable-preview-vertical.expanded { cursor: default; }
+    .timetable-preview-vertical.expanded:hover { transform: none; }
+    .tt-day-block { display: flex; flex-direction: column; gap: 8px; opacity: 0; transform: translateY(-6px); animation: ttFadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; pointer-events: auto; cursor: pointer; }
+    @keyframes ttFadeInUp { to { opacity: 1; transform: translateY(0); } }
+    .tt-day-block + .tt-day-block { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--glass-border); }
+    .tt-day-header { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.9px; color: var(--text-sub); margin-bottom: 2px; }
+    .tt-day-header .tt-day-date { font-weight: 600; text-transform: none; letter-spacing: 0; opacity: 0.7; font-size: 0.68rem; }
+    .tt-day-list { display: flex; flex-direction: column; gap: 8px; }
+    .tt-slot { display: flex; align-items: center; gap: 12px; background: var(--input-bg); padding: 10px 14px; border-radius: 14px; border: 1px solid var(--glass-border); transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: auto; }
+    .tt-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 8px currentColor; }
+    .tt-slot-emoji { font-size: 1.2rem; flex-shrink: 0; }
+    .tt-slot-info { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+    .tt-slot-title { font-weight: 750; font-size: 0.9rem; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tt-slot-time { font-size: 0.72rem; color: var(--text-sub); margin-top: 2px; }
+    .tt-empty { font-size: 0.8rem; color: var(--text-sub); font-style: italic; padding: 6px 0; }
+    .tt-slot.tt-hidden { opacity: 0; transform: translateY(-6px); animation: ttSlotSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes ttSlotSlideIn { to { opacity: 1; transform: translateY(0); } }
+    .tt-expand-btn { width: 100%; background: transparent; border: none; color: var(--text-sub); font-size: 0.75rem; font-weight: 700; padding: 12px 0 0; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; user-select: none; pointer-events: auto; }
+    .tt-expand-btn:hover { color: var(--text-color); }
+    .tt-expand-btn .tt-chevron { display: inline-block; transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1); font-size: 0.9rem; }
+    .timetable-preview-vertical.expanded .tt-expand-btn .tt-chevron { transform: rotate(180deg); }
+
+    .scroll-picker-container { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; padding: 4px; }
+    .scroll-picker-item { padding: 12px; text-align: center; border-radius: 12px; background: var(--input-bg); border: 1px solid var(--glass-border); font-size: 0.9rem; font-weight: 650; cursor: pointer; transition: transform 0.2s ease; }
+    .scroll-picker-item:hover { background: rgba(255, 255, 255, 0.28); transform: scale(1.02); }
+    .scroll-picker-item.active { border-color: var(--accent-color); background: color-mix(in srgb, var(--accent-color) calc(var(--has-accent) * 40%), var(--input-bg)); font-weight: 800; }
+
+    .tt-edit-btn { font-size: 0.75rem; font-weight: 700; background: linear-gradient(135deg, var(--glass-sheen-a), var(--glass-sheen-b)), var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-color); padding: 6px 14px; border-radius: 10px; cursor: pointer; backdrop-filter: blur(20px); box-shadow: var(--glass-shadow); transition: transform 0.2s ease, background 0.2s ease; }
+    .tt-edit-btn:hover { background: rgba(255, 255, 255, 0.28); transform: scale(1.03); }
+    .tt-edit-btn.active { background: linear-gradient(135deg, rgba(255,255,255,0.35), rgba(255,255,255,0.10)), var(--glass-bg); border-color: var(--text-color); }
+    .tt-slot.edit-mode { cursor: pointer; border-style: dashed; pointer-events: auto; }
+    .tt-slot.edit-mode:hover { background: rgba(255,255,255,0.28); transform: scale(1.02); }
+
+    .tt-add-btn { text-align: center; font-size: 0.85rem; font-weight: 700; color: var(--text-color); padding: 12px; background: var(--input-bg); border: 1px dashed var(--glass-border); border-radius: 14px; cursor: pointer; margin-top: 4px; transition: 0.2s; }
+    .tt-add-btn:hover { background: rgba(255,255,255,0.28); }
+
+    .smart-subject-pill { background: var(--input-bg); border: 1px solid var(--glass-border); border-radius: 20px; padding: 8px 12px; font-size: 0.85rem; font-weight: 650; color: var(--text-color); cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+    .smart-subject-pill:hover { background: rgba(255, 255, 255, 0.28); transform: scale(1.05); }
+
+    .time-picker-wrapper { display: flex; gap: 8px; align-items: center; justify-content: center; background: var(--input-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 10px; margin-top: 4px; backdrop-filter: blur(20px); }
+    .time-picker-col { display: flex; flex-direction: column; align-items: center; height: 100px; overflow-y: scroll; scroll-snap-type: y mandatory; width: 52px; border-radius: 10px; background: rgba(255,255,255,0.15); position: relative; padding: 32px 0; }
+    body.dark-mode .time-picker-col { background: rgba(255,255,255,0.05); }
+    .time-picker-item { height: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 600; color: var(--text-sub); scroll-snap-align: center; cursor: pointer; width: 100%; transition: color 0.2s ease, transform 0.2s ease, font-size 0.2s ease; }
+    .time-picker-item.selected { color: var(--text-color); font-size: 1.15rem; font-weight: 800; transform: scale(1.05); }
+    .time-picker-separator { font-size: 1.1rem; font-weight: 800; color: var(--text-color); padding-bottom: 2px; }
+    .time-preview-badge { text-align: center; font-size: 0.78rem; font-weight: 700; color: var(--text-color); margin-top: 6px; padding: 6px; background: var(--input-bg); border-radius: 10px; border: 1px solid var(--glass-border); }
+
+    .modal-overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 1000; }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+    .modal-card { width: 100%; max-width: 390px; max-height: 90vh; display: flex; flex-direction: column; padding: 20px 22px; border-radius: 26px; background: linear-gradient(145deg, var(--glass-sheen-a), var(--glass-sheen-b)), var(--glass-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(45px) saturate(120%); -webkit-backdrop-filter: blur(45px) saturate(120%); box-shadow: 0 45px 100px rgba(0,0,0,0.35), inset 0 1px 0 var(--glass-highlight); transform: translateY(20px) scale(0.95); opacity: 0; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease; overflow-y: auto; }
+    .modal-overlay.open .modal-card { transform: translateY(0) scale(1); opacity: 1; }
+    .modal-title { margin-bottom: 8px; font-size: 1.05rem; font-weight: 750; flex-shrink: 0; }
+    .modal-buttons { display: flex; gap: 10px; margin-top: 10px; flex-shrink: 0; }
+    .btn-cancel { flex: 1; padding: 10px 16px; border-radius: 13px; border: 1px solid var(--glass-border); background: var(--input-bg); color: var(--text-color); font-size: 0.82rem; font-weight: 650; cursor: pointer; backdrop-filter: blur(20px); transition: background 0.2s ease; }
+    .btn-cancel:hover { background: rgba(255,255,255,0.35); }
+    body.dark-mode .btn-cancel:hover { background: rgba(255,255,255,0.10); }
+    .name-input { width: 100%; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--input-bg); color: var(--text-color); font-size: 0.84rem; }
+    .name-input::placeholder { color: var(--text-sub); }
+
+    .color-picker-grid-extended { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-top: 6px; }
+    .color-dot { width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(255,255,255,0.75); transition: transform 0.3s cubic-bezier(.16,1,.3,1); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .color-dot.active { transform: scale(1.15); border-color: var(--text-color); box-shadow: 0 0 10px rgba(0,0,0,0.15); }
+
+    .shape-picker-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 6px; }
+    .shape-dot { width: 100%; height: 36px; border-radius: 10px; border: 1px solid var(--glass-border); background: var(--input-bg); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s ease; }
+    .shape-dot:hover { background: rgba(255,255,255,0.28); }
+    .shape-dot.active { border-color: var(--text-color); background: color-mix(in srgb, var(--text-color) 12%, var(--input-bg)); }
+    .shape-preview { width: 14px; height: 14px; background: var(--text-color); display: block; }
+    .shape-preview-circle { border-radius: 50%; }
+    .shape-preview-square { border-radius: 3px; }
+    .shape-preview-triangle { width: 0; height: 0; background: transparent; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 12px solid var(--text-color); }
+    .shape-preview-heart { background-color: var(--text-color); mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E") no-repeat center; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E") no-repeat center; width: 14px; height: 14px; }
+
+    .emoji-picker-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 6px; max-height: 140px; overflow-y: auto; padding: 4px; }
+    .emoji-option { aspect-ratio: 1; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--input-bg); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; cursor: pointer; transition: background 0.2s ease; }
+    .emoji-option:hover { background: rgba(255,255,255,0.28); }
+    .emoji-option.active { border-color: var(--text-color); background: color-mix(in srgb, var(--text-color) 15%, var(--input-bg)); }
+
+    .clean-list-item { display: flex; justify-content: space-between; align-items: center; padding: 9px 13px; border-radius: 13px; background: var(--input-bg); border: 1px solid var(--glass-border); font-size: 0.82rem; gap: 12px; }
+    .action-btn-group { display: flex; gap: 6px; flex-shrink: 0; }
+    .icon-action-btn { width: 30px; height: 30px; border-radius: 9px; border: 1px solid var(--glass-border); background: rgba(255, 255, 255, 0.15); color: var(--text-color); display: flex; align-items: center; justify-content: center; font-size: 0.78rem; cursor: pointer; transition: background 0.2s ease; }
+    .icon-action-btn:hover { background: rgba(255, 255, 255, 0.28); }
+    .icon-action-btn.danger { color: #ff3b30; border-color: rgba(255, 59, 48, 0.3); }
+    .icon-action-btn.danger:hover { background: rgba(255, 59, 48, 0.18); }
+
+    .big-calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 6px; }
+    .big-calendar-cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 11px; font-size: 0.8rem; font-weight: 600; background: var(--input-bg); border: 1px solid var(--glass-border); cursor: pointer; transition: transform 0.2s ease, background 0.2s ease; position: relative; padding-top: 4px; }
+    .big-calendar-cell:hover { transform: scale(1.05); background: rgba(255, 255, 255, 0.28); }
+    .big-calendar-cell.has-exam { border-color: var(--text-color); background: color-mix(in srgb, var(--accent-color) calc(var(--has-accent) * 45%), var(--input-bg)); font-weight: 800; }
+    .big-calendar-cell.today-highlight { border: 2px solid var(--accent-color); background: color-mix(in srgb, var(--accent-color) calc(var(--has-accent) * 35% + 15%), var(--input-bg)); box-shadow: 0 0 12px color-mix(in srgb, var(--accent-color) 40%, transparent); font-weight: 800; }
+    .big-calendar-cell .day-num { display: block; }
+
+    .homework-box { padding: 18px; margin-bottom: 24px; border-radius: 22px; background: linear-gradient(135deg, var(--glass-sheen-a), var(--glass-sheen-b)), var(--glass-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(38px) saturate(115%); -webkit-backdrop-filter: blur(38px) saturate(115%); box-shadow: var(--glass-shadow); }
+    .homework-box-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .homework-box-title { font-weight: 750; font-size: 0.95rem; color: var(--text-color); }
+    .homework-add-btn { background: linear-gradient(135deg, var(--glass-sheen-a), var(--glass-sheen-b)), var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-color); padding: 6px 12px; border-radius: 10px; font-size: 0.78rem; font-weight: 700; cursor: pointer; backdrop-filter: blur(20px); transition: transform 0.2s ease, background 0.2s ease; }
+    .homework-add-btn:hover { background: rgba(255, 255, 255, 0.28); transform: scale(1.03); }
+    .homework-list { display: flex; flex-direction: column; gap: 8px; }
+    .homework-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px 10px 12px; border-radius: 14px; background: var(--input-bg); border: 1px solid var(--glass-border); position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s ease, background 0.2s ease; }
+    .homework-item:hover { transform: translateX(2px); background: rgba(255, 255, 255, 0.10); }
+    .homework-item.done { opacity: 0.55; }
+    .homework-item.done .homework-item-title { text-decoration: line-through; }
+    .homework-item-colorbar { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 14px 0 0 14px; }
+    .homework-checkbox { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--glass-border); background: var(--input-bg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.7rem; cursor: pointer; transition: all 0.2s ease; margin-left: 6px; }
+    .homework-checkbox:hover { transform: scale(1.1); }
+    .homework-item.done .homework-checkbox { background: #34c759; border-color: #34c759; color: white; }
+    .homework-item-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .homework-item-subject { font-weight: 750; font-size: 0.88rem; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .homework-item-title { font-size: 0.75rem; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .homework-item-meta { font-size: 0.68rem; font-weight: 700; margin-top: 2px; }
+    .homework-item-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .homework-empty { font-size: 0.82rem; color: var(--text-sub); font-style: italic; text-align: center; padding: 14px 0; }
+
+    .widget-homework-list { display: flex; flex-direction: column; gap: 6px; width: 100%; padding: 0 6px; }
+    .widget-homework-item { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; }
+    .widget-homework-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 6px currentColor; }
+    .widget-homework-subject { font-weight: 750; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px; }
+    .widget-homework-due { font-size: 0.65rem; color: var(--text-sub); margin-left: auto; white-space: nowrap; font-weight: 700; }
+    .widget-homework-empty { font-size: 0.75rem; color: var(--text-sub); font-style: italic; text-align: center; padding: 8px 0; }
+
+    .glass-date-picker { display: flex; gap: 6px; align-items: center; background: var(--input-bg); border: 1px solid var(--glass-border); border-radius: 14px; padding: 8px 10px; margin-top: 4px; backdrop-filter: blur(20px); }
+    .glass-date-picker .date-part { position: relative; }
+    .glass-date-picker select { width: 100%; padding: 8px 20px 8px 10px; border-radius: 10px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.15); color: var(--text-color); font-size: 0.85rem; font-weight: 650; cursor: pointer; -webkit-appearance: none; appearance: none; text-align: center; transition: background 0.2s ease; }
+    body.dark-mode .glass-date-picker select { background: rgba(255,255,255,0.06); }
+    .glass-date-picker select:hover { background: rgba(255,255,255,0.28); }
+    .glass-date-picker select option { background: var(--bg-1); color: var(--text-color); }
+    .glass-date-picker .date-part::after { content: "▾"; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 0.65rem; color: var(--text-sub); pointer-events: none; }
+    .glass-date-preview { text-align: center; font-size: 0.75rem; font-weight: 700; color: var(--text-color); margin-top: 6px; padding: 5px; background: var(--input-bg); border-radius: 10px; border: 1px solid var(--glass-border); }
+
+    .weight-options { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+    .weight-option { padding: 10px 14px; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--input-bg); font-size: 0.82rem; font-weight: 650; color: var(--text-color); cursor: pointer; transition: background 0.2s ease; display: flex; justify-content: space-between; align-items: center; }
+    .weight-option:hover { background: rgba(255,255,255,0.28); }
+    .weight-option.active { border-color: var(--text-color); background: color-mix(in srgb, var(--text-color) 12%, var(--input-bg)); }
+    .weight-option .weight-pct { font-size: 0.72rem; color: var(--text-sub); }
+
+    @media (max-width: 480px) { body { padding: 20px 14px; } .app-container { max-width: 100%; } .glass-menu { right: -4px; width: min(310px, calc(100vw - 28px)); } }
+
+    @media print {
+      body * { visibility: hidden; }
+      .app-container, .app-container * { visibility: visible; }
+      .app-container { position: absolute; left: 0; top: 0; padding: 0; }
+      .pattern-layer, body::before, body::after,
+      .quick-input-bar, .header-actions, .icon-btn,
+      .tt-expand-btn, .modal-overlay { display: none !important; }
+      body { background: white !important; padding: 20px; }
+      .overview-card, .subject-card, .timetable-preview-vertical, .homework-box { background: white !important; border: 1px solid #ddd !important; box-shadow: none !important; backdrop-filter: none !important; }
+    }
+
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+  </style>
+</head>
+<body onload="initApp()">
+  <div class="pattern-layer" id="patternLayer"></div>
+  <div class="app-container">
+
+    <div class="app-header">
+      <div class="greeting-box">
+        <div class="app-title">GradeFlow 📚</div>
+        <div class="greeting-subtitle" id="greetingText">Guten Tag</div>
+      </div>
+
+      <div class="header-actions">
+        <button class="icon-btn" onclick="openSubjectModal()" aria-label="Fach hinzufügen">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+
+        <div style="position: relative;">
+          <button class="icon-btn" onclick="toggleMenu()" aria-label="Einstellungen">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+
+          <div class="glass-menu" id="glassMenu">
+            <div class="menu-category" id="catGeneral">
+              <div class="menu-category-header" onclick="toggleCategory('catGeneral')">
+                <span>👤 Allgemein</span><span class="menu-category-arrow">▼</span>
+              </div>
+              <div class="menu-category-content">
+                <div class="menu-section">
+                  <div class="menu-label">Dein Name</div>
+                  <input type="text" id="nameInput" class="name-input" placeholder="Name eingeben..." oninput="updateName(this.value)">
+                </div>
+              </div>
+            </div>
+
+            <div class="menu-category" id="catWidget">
+              <div class="menu-category-header" onclick="toggleCategory('catWidget')">
+                <span>🎛️ Haupt-Widget</span><span class="menu-category-arrow">▼</span>
+              </div>
+              <div class="menu-category-content">
+                <div class="menu-section">
+                  <div class="menu-label">Welche Slides anzeigen?</div>
+                  <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom: 8px;">Tippe zum Ein-/Ausschalten.</div>
+                  <div id="widgetSlidesToggles" style="display: flex; flex-direction: column; gap: 6px;"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="menu-category" id="catDesign">
+              <div class="menu-category-header" onclick="toggleCategory('catDesign')">
+                <span>🎨 Optik & Design</span><span class="menu-category-arrow">▼</span>
+              </div>
+              <div class="menu-category-content">
+                <div class="menu-section"><button class="menu-item" onclick="toggleTheme()">🌓 Dark / Light Mode</button></div>
+                <div class="menu-section" style="margin-top: 10px;">
+                  <div class="menu-label">Ambient-Farbe</div>
+                  <div class="color-picker-grid-extended" id="colorPickerGrid">
+                    <div class="color-dot active" style="background:#ffffff" onclick="setThemeColor('#ffffff', this)"></div>
+                    <div class="color-dot" style="background:#007aff" onclick="setThemeColor('#007aff', this)"></div>
+                    <div class="color-dot" style="background:#5856d6" onclick="setThemeColor('#5856d6', this)"></div>
+                    <div class="color-dot" style="background:#af52de" onclick="setThemeColor('#af52de', this)"></div>
+                    <div class="color-dot" style="background:#ff2d55" onclick="setThemeColor('#ff2d55', this)"></div>
+                    <div class="color-dot" style="background:#ff9500" onclick="setThemeColor('#ff9500', this)"></div>
+                    <div class="color-dot" style="background:#34c759" onclick="setThemeColor('#34c759', this)"></div>
+                    <div class="color-dot" style="background:#30b0c7" onclick="setThemeColor('#30b0c7', this)"></div>
+                    <div class="color-dot" style="background:#e06c75" onclick="setThemeColor('#e06c75', this)"></div>
+                    <div class="color-dot" style="background:#98c379" onclick="setThemeColor('#98c379', this)"></div>
+                    <div class="color-dot" style="background:#61afef" onclick="setThemeColor('#61afef', this)"></div>
+                    <div class="color-dot" style="background:#c678dd" onclick="setThemeColor('#c678dd', this)"></div>
+                    <div class="color-dot" style="background:#d19a66" onclick="setThemeColor('#d19a66', this)"></div>
+                    <div class="color-dot" style="background:#56b6c2" onclick="setThemeColor('#56b6c2', this)"></div>
+                    <div class="color-dot" style="background:#abb2bf" onclick="setThemeColor('#abb2bf', this)"></div>
+                    <div class="color-dot" style="background:#0d9488" onclick="setThemeColor('#0d9488', this)"></div>
+                  </div>
+                </div>
+                <div class="menu-section" style="margin-top: 10px;">
+                  <div class="menu-label">Musterform</div>
+                  <div class="shape-picker-grid" id="shapePickerGrid">
+                    <button class="shape-dot active" data-shape="circle" onclick="setPatternShape('circle', this)"><span class="shape-preview shape-preview-circle"></span></button>
+                    <button class="shape-dot" data-shape="square" onclick="setPatternShape('square', this)"><span class="shape-preview shape-preview-square"></span></button>
+                    <button class="shape-dot" data-shape="triangle" onclick="setPatternShape('triangle', this)"><span class="shape-preview shape-preview-triangle"></span></button>
+                    <button class="shape-dot" data-shape="heart" onclick="setPatternShape('heart', this)"><span class="shape-preview shape-preview-heart"></span></button>
+                  </div>
+                </div>
+                <div class="menu-section" style="margin-top: 10px;">
+                  <div class="menu-label">Glow-Intensität</div>
+                  <input type="range" min="0" max="0.02" step="0.001" value="0.005" class="glow-slider" id="glowIntensitySlider" oninput="setGlowIntensity(this.value)">
+                </div>
+              </div>
+            </div>
+
+            <div class="menu-category" id="catShare">
+              <div class="menu-category-header" onclick="toggleCategory('catShare')">
+                <span>📤 Teilen & Export</span><span class="menu-category-arrow">▼</span>
+              </div>
+              <div class="menu-category-content">
+                <div class="menu-section"><button class="menu-item" onclick="shareDataViaAirDrop()">📡 Per AirDrop / Link teilen</button></div>
+                <div class="menu-section" style="margin-top: 4px;"><button class="menu-item" onclick="window.print()">🖨️ Noten & Kalender drucken</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="overview-card" id="overviewCard">
+      <div class="widget-container">
+        <div class="widget-slides" id="widgetSlides"></div>
+      </div>
+      <div class="widget-indicators" id="widgetIndicators"></div>
+    </div>
+
+    <div class="quick-input-bar">
+      <input type="text" id="quickInput" class="quick-input" placeholder="Note oder Fach eintragen (z.B. Mathe, 2)..." onkeydown="handleQuickInput(event)">
+      <button class="btn-primary" onclick="submitQuickInput()">+ Eintragen</button>
+    </div>
+
+    <div class="section-header">
+      <span class="section-title">Fächer-Ordner</span>
+    </div>
+    <div id="subjectList"></div>
+
+    <div class="section-header" style="margin-top: 24px;">
+      <span class="section-title">Stundenplan</span>
+    </div>
+    <div class="timetable-preview-vertical" id="timetablePreview">
+      <div id="ttDayView"></div>
+    </div>
+
+    <div class="section-header" style="margin-top: 24px;">
+      <span class="section-title">Hausaufgaben</span>
+    </div>
+    <div class="homework-box">
+      <div class="homework-box-header">
+        <span class="homework-box-title">📚 Offene Aufgaben</span>
+        <button class="homework-add-btn" onclick="openHomeworkModal()">+ Neu</button>
+      </div>
+      <div class="homework-list" id="homeworkList"></div>
+    </div>
+
+  </div>
+
+  <!-- MODALS -->
+
+  <div class="modal-overlay" id="timetablePickerModal" onclick="handleModalBackground(event, 'timetablePickerModal')">
+    <div class="modal-card" onclick="event.stopPropagation()" style="max-width: 340px;">
+      <div class="modal-title">Stundenplan 📅</div>
+      <div class="scroll-picker-container" id="dayPickerList">
+        <div class="scroll-picker-item" onclick="openTimetableDayModal(1)">Montag</div>
+        <div class="scroll-picker-item" onclick="openTimetableDayModal(2)">Dienstag</div>
+        <div class="scroll-picker-item" onclick="openTimetableDayModal(3)">Mittwoch</div>
+        <div class="scroll-picker-item" onclick="openTimetableDayModal(4)">Donnerstag</div>
+        <div class="scroll-picker-item" onclick="openTimetableDayModal(5)">Freitag</div>
+      </div>
+      <div style="margin-top: 14px;"><button class="btn-primary" style="width: 100%; padding: 11px;" onclick="closeTimetablePickerModal()">Schließen</button></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="timetableDayModal" onclick="handleModalBackground(event, 'timetableDayModal')">
+    <div class="modal-card" onclick="event.stopPropagation()" style="max-width: 390px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-shrink: 0;">
+        <div class="modal-title" style="margin-bottom: 0;" id="ttDayModalTitle">Montag</div>
+        <button class="tt-edit-btn" id="ttEditToggleBtn" onclick="toggleTimetableEdit()">Bearbeiten</button>
+      </div>
+      <div style="overflow-y: auto; flex: 1; padding-right: 2px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;" id="ttDayModalList"></div>
+      <div id="ttDayAddButtonContainer" style="margin-bottom: 10px; display: none; flex-shrink: 0;">
+        <div class="tt-add-btn" onclick="openTtSlotPromptFromDay()">+ Fach hinzufügen</div>
+      </div>
+      <div class="modal-buttons" style="margin-top: 0; flex-shrink: 0;">
+        <button class="btn-cancel" onclick="backToTimetablePicker()">Zurück</button>
+        <button class="btn-primary" style="flex:1" onclick="closeTimetableDayModal()">Schließen</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="ttSlotPromptModal" onclick="handleModalBackground(event, 'ttSlotPromptModal')">
+    <div class="modal-card" onclick="event.stopPropagation()" style="max-width: 360px;">
+      <div class="modal-title" id="ttPromptTitle">Fach eintragen ✏️</div>
+      <div style="margin-bottom: 10px;">
+        <div class="menu-label">Schnell-Auswahl</div>
+        <div id="ttSmartSubjectList" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;"></div>
+        <input type="text" id="ttPromptSubject" class="name-input" placeholder="z.B. Mathematik...">
+        <div class="menu-label" style="margin-top: 10px;">Uhrzeit</div>
+        <div style="display: flex; gap: 8px; align-items: center; justify-content: center;">
+          <div class="time-picker-wrapper" style="flex:1;">
+            <div class="time-picker-col" id="colStartHour" onscroll="onPickerScroll('StartHour')"></div>
+            <div class="time-picker-separator">:</div>
+            <div class="time-picker-col" id="colStartMin" onscroll="onPickerScroll('StartMin')"></div>
+          </div>
+          <span style="font-weight: 800; color: var(--text-sub);">bis</span>
+          <div class="time-picker-wrapper" style="flex:1;">
+            <div class="time-picker-col" id="colEndHour" onscroll="onPickerScroll('EndHour')"></div>
+            <div class="time-picker-separator">:</div>
+            <div class="time-picker-col" id="colEndMin" onscroll="onPickerScroll('EndMin')"></div>
+          </div>
+        </div>
+        <div class="time-preview-badge" id="timePreviewBadge">Ausgewählt: 08:00 - 09:30</div>
+      </div>
+      <div style="margin-bottom: 12px;">
+        <div class="menu-label" style="margin-bottom: 2px;">🎨 Farbe für dieses Fach</div>
+        <div style="font-size: 0.7rem; color: var(--text-sub); margin-bottom: 6px;">Gilt für alle Stunden mit diesem Fach</div>
+        <div class="color-picker-grid-extended" id="ttColorPicker">
+          <div class="color-dot" style="background:#007aff" onclick="selectTtColor('#007aff', this)"></div>
+          <div class="color-dot" style="background:#5856d6" onclick="selectTtColor('#5856d6', this)"></div>
+          <div class="color-dot" style="background:#af52de" onclick="selectTtColor('#af52de', this)"></div>
+          <div class="color-dot" style="background:#ff2d55" onclick="selectTtColor('#ff2d55', this)"></div>
+          <div class="color-dot" style="background:#ff9500" onclick="selectTtColor('#ff9500', this)"></div>
+          <div class="color-dot" style="background:#ffcc00" onclick="selectTtColor('#ffcc00', this)"></div>
+          <div class="color-dot" style="background:#34c759" onclick="selectTtColor('#34c759', this)"></div>
+          <div class="color-dot" style="background:#30b0c7" onclick="selectTtColor('#30b0c7', this)"></div>
+          <div class="color-dot" style="background:#e06c75" onclick="selectTtColor('#e06c75', this)"></div>
+          <div class="color-dot" style="background:#98c379" onclick="selectTtColor('#98c379', this)"></div>
+          <div class="color-dot" style="background:#61afef" onclick="selectTtColor('#61afef', this)"></div>
+          <div class="color-dot" style="background:#c678dd" onclick="selectTtColor('#c678dd', this)"></div>
+          <div class="color-dot" style="background:#d19a66" onclick="selectTtColor('#d19a66', this)"></div>
+          <div class="color-dot" style="background:#56b6c2" onclick="selectTtColor('#56b6c2', this)"></div>
+          <div class="color-dot" style="background:#abb2bf" onclick="selectTtColor('#abb2bf', this)"></div>
+          <div class="color-dot" style="background:#0d9488" onclick="selectTtColor('#0d9488', this)"></div>
+        </div>
+      </div>
+      <div class="modal-buttons" style="margin-top: 0;">
+        <button class="btn-cancel" onclick="closeTtSlotPrompt()">Abbrechen</button>
+        <button class="btn-primary" style="flex:1" onclick="confirmTtSlot()">Speichern</button>
+      </div>
+      <button class="btn-cancel" id="ttPromptDeleteBtn" style="margin-top: 8px; color: #ff3b30; border-color: rgba(255,59,48,0.3); display: none;" onclick="deleteTtSlot()">Fach löschen</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="ttSlotDeleteConfirmModal" onclick="handleModalBackground(event, 'ttSlotDeleteConfirmModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-title">Stunde löschen? 🗑️</div>
+      <div style="font-size: 0.82rem; color: var(--text-sub); margin-bottom: 12px;" id="ttSlotDeletePromptText">Möchtest du diese Stunde wirklich löschen?</div>
+      <div class="modal-buttons" style="margin-top: 12px;">
+        <button class="btn-cancel" onclick="closeTtSlotDeleteConfirm()">Abbrechen</button>
+        <button class="btn-primary" style="flex:1; background: rgba(255, 59, 48, 0.85);" onclick="executeDeleteTtSlot()">Löschen</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="homeworkModal" onclick="handleModalBackground(event, 'homeworkModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-title" id="homeworkModalTitle">Neue Hausaufgabe 📚</div>
+      <div style="margin-bottom: 10px;">
+        <div class="menu-label">Fach</div>
+        <div id="homeworkSubjectPills" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;"></div>
+        <input type="text" id="homeworkSubjectInput" class="name-input" placeholder="Oder eigenes Fach eingeben...">
+      </div>
+      <div style="margin-bottom: 10px;">
+        <div class="menu-label">Beschreibung</div>
+        <input type="text" id="homeworkDescInput" class="name-input" placeholder="z.B. S. 45 Nr. 3">
+      </div>
+      <div style="margin-bottom: 12px;">
+        <div class="menu-label">Fällig am</div>
+        <div class="glass-date-picker" id="homeworkDatePicker">
+          <div class="date-part" style="flex:1.4;">
+            <select id="homeworkDateDay" onchange="updateDatePreview()"></select>
+          </div>
+          <div class="date-part" style="flex:2;">
+            <select id="homeworkDateMonth" onchange="updateDatePreview()"></select>
+          </div>
+          <div class="date-part" style="flex:1.4;">
+            <select id="homeworkDateYear" onchange="updateDatePreview()"></select>
+          </div>
+        </div>
+        <div class="glass-date-preview" id="homeworkDatePreview">—</div>
+      </div>
+      <div class="modal-buttons" style="margin-top: 0;">
+        <button class="btn-cancel" onclick="closeHomeworkModal()">Abbrechen</button>
+        <button class="btn-primary" style="flex:1" onclick="confirmHomework()">Speichern</button>
+      </div>
+      <button class="btn-cancel" id="homeworkDeleteBtn" style="margin-top: 8px; color: #ff3b30; border-color: rgba(255,59,48,0.3); display: none;" onclick="promptDeleteHomework()">Hausaufgabe löschen</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="homeworkDeleteConfirmModal" onclick="handleModalBackground(event, 'homeworkDeleteConfirmModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-title">Hausaufgabe löschen? 🗑️</div>
+      <div style="font-size: 0.82rem; color: var(--text-sub); margin-bottom: 12px;" id="homeworkDeletePromptText">Möchtest du diese Hausaufgabe wirklich löschen?</div>
+      <div class="modal-buttons" style="margin-top: 12px;">
+        <button class="btn-cancel" onclick="closeHomeworkDeleteConfirm()">Abbrechen</button>
+        <button class="btn-primary" style="flex:1; background: rgba(255, 59, 48, 0.85);" onclick="executeDeleteHomework()">Löschen</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="homeworkCreateSubjectModal" onclick="closeHomeworkCreateSubjectModal()">
+    <div class="modal-card" onclick="event.stopPropagation()" style="max-width: 330px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;"><span style="font-size: 1.4rem;">📁</span><div class="modal-title" style="margin-bottom: 0;">Neues Fach anlegen?</div></div>
+      <div style="font-size: 0.84rem; color: var(--text-color); font-weight: 600; margin-bottom: 16px;" id="homeworkCreateSubjectText">Fach existiert noch nicht. Anlegen?</div>
+      <div class="modal-buttons" style="margin-top: 0;">
+        <button class="btn-cancel" onclick="closeHomeworkCreateSubjectModal()">Nein</button>
+        <button class="btn-primary" style="flex:1" onclick="confirmHomeworkCreateSubject()">Ja, anlegen</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="wizardSubjectModal" onclick="handleModalBackground(event, 'wizardSubjectModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-title">Klausur eintragen (1/2) 📚</div>
+      <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+        <input type="text" id="wizardCustomSubjectInput" class="name-input" placeholder="Oder neues Fach eingeben...">
+        <button class="btn-primary" onclick="confirmWizardSubjectCustom()">Weiter</button>
+      </div>
+      <div id="wizardSubjectSelectList" style="display: flex; flex-direction: column; gap: 6px; overflow-y: auto; max-height: 160px; margin-bottom: 10px;"></div>
+      <button class="btn-cancel" style="width: 100%; padding: 10px;" onclick="closeWizardSubjectModal()">Abbrechen</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="wizardDaysModal" onclick="handleModalBackground(event, 'wizardDaysModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-title" id="wizardDaysTitle">Klausur eintragen (2/2) ⏳</div>
+      <input type="text" id="wizardDaysInput" class="name-input" placeholder="z.B. 5 oder 29. September" onkeydown="handleWizardDaysKey(event)" style="margin-bottom: 12px;">
+      <div class="modal-buttons" style="margin-top: 0;">
+        <button class="btn-cancel" onclick="closeWizardDaysModal()">Zurück</button>
+        <button class="btn-primary" style="flex:1" onclick="confirmWizardDays()">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="averageDetailModal" onclick="handleModalBackground(event, 'averageDetailModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-title">Gesamtdurchschnitt 📊</div>
+      <div id="averageBreakdownList" style="display: flex; flex-direction: column; gap: 8px; overflow-y: auto; margin-bottom: 12px; flex: 1;"></div>
+      <button class="btn-primary" style="width: 100%; padding: 11px;" onclick="closeAverageDetailModal()">Schließen</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="calendarModal" onclick="handleModalBackground(event, 'calendarModal')">
+    <div class="modal-card" onclick="event.stopPropagation()" style="max-width: 410px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-shrink: 0;">
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <div class="modal-title" style="margin-bottom: 0; cursor: pointer; text-decoration: underline; text-decoration-style: dotted;" onclick="openMonthPickerModal()" id="calendarMonthTitle">Monat</div>
+          <div class="modal-title" style="margin-bottom: 0; cursor: pointer; text-decoration: underline; text-decoration-style: dotted;" onclick="openYearPickerModal()" id="calendarYearTitle">2026</div>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <button class="icon-action-btn" onclick="changeMonth(-1)">◀</button>
+          <button class="icon-action-btn" onclick="changeMonth(1)">▶</button>
+        </div>
+      </div>
+      <div style="font-size: 0.72rem; color: var(--text-sub); margin-bottom: 8px; flex-shrink: 0;">🟣 Punkt = Hausaufgabe · 📌 Farbig = Klausur</div>
+      <div style="overflow-y: auto; flex: 1; padding-right: 2px; margin-bottom: 10px;">
+        <div class="calendar-grid-preview" style="margin-bottom: 4px;">
+          <div class="calendar-day-header">Mo</div><div class="calendar-day-header">Di</div><div class="calendar-day-header">Mi</div><div class="calendar-day-header">Do</div><div class="calendar-day-header">Fr</div><div class="calendar-day-header">Sa</div><div class="calendar-day-header">So</div>
+        </div>
+        <div class="big-calendar-grid" id="bigCalendarGrid"></div>
+        <div style="margin-top: 14px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--text-sub); margin-bottom: 4px;">Termine</div>
+        <div id="calendarEventsList" style="display: flex; flex-direction: column; gap: 6px;"></div>
+      </div>
+      <button class="btn-primary" style="width: 100%; padding: 11px; flex-shrink: 0;" onclick="closeCalendarModal()">Schließen</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="monthPickerModal" onclick="handleModalBackground(event, 'monthPickerModal')">
+    <div class="modal-card" onclick="event.stopPropagation()" style="max-width: 320px;">
+      <div class="modal-title">Monat wählen 🗓️</div>
+      <div class="scroll-picker-container" id="monthPickerList"></div>
+      <div style="margin-top: 12px;"><button class="btn-cancel" style="width: 100%; padding: 10px;" onclick="closeMonthPickerModal()">Abbrechen</button></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="yearPickerModal" onclick="handleModalBackground(event, 'yearPickerModal')">
+    <div class="modal-card" onclick="event.stopPropagation()" style="max-width: 320px;">
+      <div class="modal-title">Jahr wählen 📅</div>
+      <div class="scroll-picker-container" id="yearPickerList"></div>
+      <div style="margin-top: 12px;"><button class="btn-cancel" style="width: 100%; padding: 10px;" onclick="closeYearPickerModal()">Abbrechen</button></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="glassPromptModal" onclick="handleModalBackground(event, 'glassPromptModal')">
+    <div class="modal-card" onclick="event.stopPropagation()" style="max-width: 330px;">
+      <div class="modal-title" id="glassPromptTitle">Termin eintragen 🗓️</div>
+      <input type="text" id="glassPromptInput" class="name-input" placeholder="z.B. Mathe Klausur..." onkeydown="handleGlassPromptKey(event)" style="margin-bottom: 12px;">
+      <div class="modal-buttons" style="margin-top: 0;">
+        <button class="btn-cancel" onclick="closeGlassPromptModal()">Abbrechen</button>
+        <button class="btn-primary" style="flex:1" onclick="confirmGlassPrompt()">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="examDeleteConfirmModal" onclick="handleModalBackground(event, 'examDeleteConfirmModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-title">Termin löschen? 🗑️</div>
+      <div style="font-size: 0.82rem; color: var(--text-sub); margin-bottom: 12px;" id="examDeletePromptText">Wirklich löschen?</div>
+      <div class="modal-buttons" style="margin-top: 12px;">
+        <button class="btn-cancel" onclick="closeExamDeleteConfirmModal()">Abbrechen</button>
+        <button class="btn-primary" style="flex:1; background: rgba(255, 59, 48, 0.85);" onclick="executeDeleteExam()">Löschen</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="glassErrorModal" onclick="closeGlassErrorModal()">
+    <div class="modal-card" onclick="event.stopPropagation()" style="max-width: 330px; background: linear-gradient(145deg, rgba(60, 30, 35, 0.75), rgba(30, 25, 28, 0.65)); border-color: rgba(255, 90, 90, 0.35);">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;"><span style="font-size: 1.4rem;">⚠️</span><div class="modal-title" style="margin-bottom: 0; color: #ff6b6b;">Ungültige Eingabe</div></div>
+      <div style="font-size: 0.84rem; color: #fff; font-weight: 600; margin-bottom: 16px;">Im Notensystem sind nur Werte von <strong style="color: #ff6b6b;">1.0 bis 6.0</strong> erlaubt.</div>
+      <button class="btn-primary" style="width: 100%; padding: 11px; background: rgba(255, 90, 90, 0.25); border-color: rgba(255, 90, 90, 0.5); color: #fff;" onclick="closeGlassErrorModal()">Verstanden</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="glassCreateSubjectModal" onclick="closeGlassCreateSubjectModal()">
+    <div class="modal-card" onclick="event.stopPropagation()" style="max-width: 330px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;"><span style="font-size: 1.4rem;">📁</span><div class="modal-title" style="margin-bottom: 0;">Neues Fach anlegen?</div></div>
+      <div style="font-size: 0.84rem; color: var(--text-color); font-weight: 600; margin-bottom: 16px;" id="createSubjectPromptText">Fach existiert noch nicht. Anlegen?</div>
+      <div class="modal-buttons" style="margin-top: 0;"><button class="btn-cancel" onclick="closeGlassCreateSubjectModal()">Nein</button><button class="btn-primary" style="flex:1" onclick="confirmCreateSubjectFromPrompt()">Ja, anlegen</button></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="categorySelectModal" onclick="handleModalBackground(event, 'categorySelectModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-title">Art der Prüfung 📝</div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button class="btn-primary" style="width: 100%; text-align: left; padding: 11px 14px;" onclick="chooseCategory('klausuren')">📄 Klausur</button>
+        <button class="btn-cancel" style="width: 100%; text-align: left; padding: 11px 14px;" onclick="chooseCategory('tests')">📝 Test / Sonstiges</button>
+      </div>
+      <div class="modal-buttons" style="margin-top: 12px;"><button class="btn-cancel" onclick="closeCategoryModal()">Abbrechen</button></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="subjectSelectModal" onclick="handleModalBackground(event, 'subjectSelectModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-title">In welchen Ordner? 📂</div>
+      <div style="font-size: 0.82rem; color: var(--text-sub); margin-bottom: 10px;" id="selectModalText">Fach auswählen:</div>
+      <div style="display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 180px;" id="subjectSelectList"></div>
+      <div class="modal-buttons" style="margin-top: 12px;"><button class="btn-cancel" onclick="closeSubjectSelectModal()">Abbrechen</button></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="gradePromptModal" onclick="handleModalBackground(event, 'gradePromptModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-title" id="gradePromptTitle">Note eintragen ✏️</div>
+      <input type="text" id="gradePromptInput" class="name-input" placeholder="Note eingeben..." onkeydown="handleGradePromptKey(event)">
+      <div class="modal-buttons" style="margin-top: 12px;"><button class="btn-cancel" onclick="closeGradePromptModal()">Abbrechen</button><button class="btn-primary" style="flex:1" onclick="confirmGradePrompt()">Speichern</button></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="gradeEditModal" onclick="handleModalBackground(event, 'gradeEditModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-title">Note bearbeiten ✏️</div>
+      <input type="text" id="gradeEditInput" class="name-input" placeholder="Neue Note..." onkeydown="handleGradeEditKey(event)">
+      <div class="modal-buttons" style="margin-top: 12px;"><button class="btn-cancel" onclick="closeGradeEditModal()">Abbrechen</button><button class="btn-primary" style="flex:1" onclick="confirmEditGrade()">Aktualisieren</button></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="deleteConfirmModal" onclick="handleModalBackground(event, 'deleteConfirmModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-title">Note löschen? 🗑️</div>
+      <div class="modal-buttons" style="margin-top: 12px;"><button class="btn-cancel" onclick="closeDeleteConfirmModal()">Abbrechen</button><button class="btn-primary" style="flex:1; background: rgba(255, 59, 48, 0.85);" onclick="executeDeleteGrade()">Löschen</button></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="subjectModal" onclick="handleModalBackground(event, 'subjectModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-title">Neues Fach 📁</div>
+      <input type="text" id="modalSubjectInput" class="name-input" placeholder="Fachname (z. B. Chemie)" onkeydown="handleSubjectKey(event)">
+      <div style="margin-top: 10px;">
+        <div class="menu-label" style="margin-bottom: 4px;">Icon wählen</div>
+        <div class="emoji-picker-grid" id="emojiPickerGrid">
+          <div class="emoji-option active" onclick="selectEmoji('📚', this)">📚</div><div class="emoji-option" onclick="selectEmoji('📐', this)">📐</div><div class="emoji-option" onclick="selectEmoji('💻', this)">💻</div><div class="emoji-option" onclick="selectEmoji('🧠', this)">🧠</div><div class="emoji-option" onclick="selectEmoji('📊', this)">📊</div><div class="emoji-option" onclick="selectEmoji('🧪', this)">🧪</div><div class="emoji-option" onclick="selectEmoji('🎨', this)">🎨</div><div class="emoji-option" onclick="selectEmoji('⚽', this)">⚽</div><div class="emoji-option" onclick="selectEmoji('🎵', this)">🎵</div><div class="emoji-option" onclick="selectEmoji('⚛️', this)">⚛️</div><div class="emoji-option" onclick="selectEmoji('🌍', this)">🌍</div><div class="emoji-option" onclick="selectEmoji('🗺️', this)">🗺️</div><div class="emoji-option" onclick="selectEmoji('📜', this)">📜</div><div class="emoji-option" onclick="selectEmoji('🧬', this)">🧬</div><div class="emoji-option" onclick="selectEmoji('💡', this)">💡</div><div class="emoji-option" onclick="selectEmoji('🏀', this)">🏀</div><div class="emoji-option" onclick="selectEmoji('🎭', this)">🎭</div><div class="emoji-option" onclick="selectEmoji('✍️', this)">✍️</div>
+        </div>
+      </div>
+      <div class="modal-buttons" style="margin-top: 12px;"><button class="btn-cancel" onclick="closeSubjectModal()">Abbrechen</button><button class="btn-primary" style="flex:1" onclick="confirmAddSubject()">Hinzufügen</button></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="subjectEditModal" onclick="handleModalBackground(event, 'subjectEditModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-title">Fach bearbeiten ✏️</div>
+      <input type="text" id="modalSubjectEditInput" class="name-input" placeholder="Fachname..." onkeydown="handleSubjectEditKey(event)">
+      <div style="margin-top: 10px;">
+        <div class="menu-label" style="margin-bottom: 4px;">Icon anpassen</div>
+        <div class="emoji-picker-grid" id="emojiEditPickerGrid">
+          <div class="emoji-option" onclick="selectEditEmoji('📚', this)">📚</div><div class="emoji-option" onclick="selectEditEmoji('📐', this)">📐</div><div class="emoji-option" onclick="selectEditEmoji('💻', this)">💻</div><div class="emoji-option" onclick="selectEditEmoji('🧠', this)">🧠</div><div class="emoji-option" onclick="selectEditEmoji('📊', this)">📊</div><div class="emoji-option" onclick="selectEditEmoji('🧪', this)">🧪</div><div class="emoji-option" onclick="selectEditEmoji('🎨', this)">🎨</div><div class="emoji-option" onclick="selectEditEmoji('⚽', this)">⚽</div><div class="emoji-option" onclick="selectEditEmoji('🎵', this)">🎵</div><div class="emoji-option" onclick="selectEditEmoji('⚛️', this)">⚛️</div><div class="emoji-option" onclick="selectEditEmoji('🌍', this)">🌍</div><div class="emoji-option" onclick="selectEditEmoji('🗺️', this)">🗺️</div><div class="emoji-option" onclick="selectEditEmoji('📜', this)">📜</div><div class="emoji-option" onclick="selectEditEmoji('🧬', this)">🧬</div><div class="emoji-option" onclick="selectEditEmoji('💡', this)">💡</div><div class="emoji-option" onclick="selectEditEmoji('🏀', this)">🏀</div><div class="emoji-option" onclick="selectEditEmoji('🎭', this)">🎭</div><div class="emoji-option" onclick="selectEditEmoji('✍️', this)">✍️</div>
+        </div>
+      </div>
+      <div class="modal-buttons" style="margin-top: 12px;"><button class="btn-cancel" onclick="closeSubjectEditModal()">Abbrechen</button><button class="btn-primary" style="flex:1" onclick="confirmEditSubject()">Speichern</button></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="subjectDeleteConfirmModal" onclick="handleModalBackground(event, 'subjectDeleteConfirmModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-title">Fach löschen? 🗑️</div>
+      <div style="font-size: 0.82rem; color: var(--text-sub); margin-bottom: 12px;">Inklusive aller Noten wirklich löschen?</div>
+      <div class="modal-buttons" style="margin-top: 12px;"><button class="btn-cancel" onclick="closeSubjectDeleteConfirmModal()">Abbrechen</button><button class="btn-primary" style="flex:1; background: rgba(255, 59, 48, 0.85);" onclick="executeDeleteSubject()">Löschen</button></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="subjectDetailModal" onclick="handleModalBackground(event, 'subjectDetailModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-title" id="detailModalTitle">Fach-Details 📂</div>
+      <div style="font-size: 0.82rem; color: var(--text-sub); margin-bottom: 10px;" id="detailModalMeta">Noten-Übersicht</div>
+      <div style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--text-sub); margin-bottom: 4px;">Klausuren</div>
+      <div id="detailKlausurenList" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; max-height: 100px; overflow-y: auto;"></div>
+      <div style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--text-sub); margin-bottom: 4px;">Tests & Sonstige</div>
+      <div id="detailTestsList" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; max-height: 100px; overflow-y: auto;"></div>
+      <div style="padding-top: 10px; border-top: 1px solid var(--glass-border);">
+        <div class="menu-label" style="margin-bottom: 4px;">🎯 Was-wäre-wenn Rechner</div>
+        <div style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 4px;">Ziel-Schnitt: <strong id="targetGradeLabel" style="color: var(--text-color);">3.0</strong></div>
+        <input type="range" id="whatIfSlider" min="1.0" max="6.0" step="0.5" value="3.0" class="glow-slider" oninput="calculateWhatIf(this.value)">
+        <div id="whatIfResult" style="margin-top: 4px; font-size: 0.74rem; font-weight: 700; text-align: center; color: var(--text-color);">—</div>
+      </div>
+      <div class="menu-category" id="detailFolderCategory" style="margin-top: 10px; margin-bottom: 0;">
+        <div class="menu-category-header" onclick="toggleDetailFolder()" style="padding: 10px 14px; font-size: 0.74rem;">
+          <span>📁 Fach verwalten</span><span class="menu-category-arrow">▼</span>
+        </div>
+        <div class="menu-category-content" style="padding: 0 12px;">
+          <div style="display: flex; flex-direction: column; gap: 6px; padding-bottom: 8px; padding-top: 4px;">
+            <div style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--text-sub); margin-top: 4px; margin-bottom: 2px;">⚖️ Noten-Gewichtung</div>
+            <div style="font-size: 0.68rem; color: var(--text-sub); margin-bottom: 6px;">Wie zählen Klausuren und Tests?</div>
+            <div class="weight-options" id="weightOptions">
+              <div class="weight-option" data-weight="60-40" onclick="setWeight('60-40')"><span>Standard</span><span class="weight-pct">60% / 40%</span></div>
+              <div class="weight-option" data-weight="70-30" onclick="setWeight('70-30')"><span>Klausuren mehr</span><span class="weight-pct">70% / 30%</span></div>
+              <div class="weight-option" data-weight="50-50" onclick="setWeight('50-50')"><span>Beide gleich</span><span class="weight-pct">50% / 50%</span></div>
+              <div class="weight-option" data-weight="40-60" onclick="setWeight('40-60')"><span>Tests mehr</span><span class="weight-pct">40% / 60%</span></div>
+            </div>
+            <div style="height: 1px; background: var(--glass-border); margin: 8px 0;"></div>
+            <button class="btn-cancel" style="width: 100%; padding: 8px; font-size: 0.74rem;" onclick="openSubjectEditModal()">✏️ Name & Icon ändern</button>
+            <button class="btn-cancel" style="width: 100%; padding: 8px; font-size: 0.74rem; color: #ff3b30; border-color: rgba(255,59,48,0.3);" onclick="promptDeleteSubject()">🗑️ Fach löschen</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 10px;">
+        <button class="btn-primary" style="width: 100%; padding: 11px;" onclick="closeSubjectDetail()">Schließen</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let appSettings = {
+      userName: "", theme: "auto", accentColor: "#ffffff", patternShape: "circle", patternSize: 130,
+      glowIntensity: 0.005, examsList: [],
+      timetable: { 1: [], 2: [], 3: [], 4: [], 5: [] },
+      subjectColors: {},
+      homework: [],
+      weights: {},
+      slideEnabled: { avg: true, exam: true, cal: true, hw: true }
+    };
+
+    let selectedEmoji = "📚"; let selectedEditEmoji = "📚";
+    let currentSlide = 0; let touchStartY = 0; let currentActiveSubjectName = "";
+    let pendingGrade = ""; let pendingCategory = "klausuren"; let pendingSubject = ""; let pendingUnknownSubjectName = "";
+    let wizardSelectedSubject = "";
+    let targetDeleteSub = ""; let targetDeleteCat = ""; let targetDeleteIdx = -1;
+    let targetEditSub = ""; let targetEditCat = ""; let targetEditIdx = -1;
+    let targetDeleteExamIndex = null;
+    let currentCalendarDate = new Date(); let pendingPromptDay = null;
+    let isTimetableEditMode = false; let activeTimetableDay = 1; let pendingTtIndex = -1; let currentTtColor = "#007aff";
+    let isTimetableExpanded = false;
+    let pendingDeleteTtDay = null; let pendingDeleteTtIdx = -1;
+    let editingHomeworkId = null; let pendingDeleteHomeworkId = null;
+    let pendingHomeworkCreateSubject = null;
+    let subjectsData = [];
+
+    const FALLBACK_COLOR = "#007aff";
+    const MONTH_NAMES_LONG = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+
+    function initApp() {
+      const saved = localStorage.getItem("gradeflow_settings");
+      if (saved) { try { appSettings = { ...appSettings, ...JSON.parse(saved) }; } catch (e) {} }
+      if (!appSettings.slideEnabled || Object.keys(appSettings.slideEnabled).length === 0) {
+        appSettings.slideEnabled = { avg: true, exam: true, cal: true, hw: true };
+      }
+      if (!appSettings.timetable) appSettings.timetable = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+      if (!appSettings.subjectColors) appSettings.subjectColors = {};
+      if (!appSettings.homework) appSettings.homework = [];
+      if (!appSettings.weights) appSettings.weights = {};
+
+      const savedSubjects = localStorage.getItem("gradeflow_subjects");
+      if (savedSubjects) { try { subjectsData = JSON.parse(savedSubjects); } catch (e) {} }
+      if (subjectsData.length === 0 && !localStorage.getItem("gradeflow_initialized")) {
+        subjectsData = [
+          { name: "Mathematik", emoji: "📐", klausuren: [], tests: [], meta: "0 Klausuren, 0 Tests" },
+          { name: "Deutsch", emoji: "📖", klausuren: [], tests: [], meta: "0 Klausuren, 0 Tests" }
+        ];
+        localStorage.setItem("gradeflow_initialized", "true");
+        saveSubjects();
+      }
+
+      if (appSettings.userName) document.getElementById("nameInput").value = appSettings.userName;
+      if (appSettings.theme === "dark") document.body.classList.add("dark-mode");
+      else if (appSettings.theme === "auto" && window.matchMedia("(prefers-color-scheme: dark)").matches) document.body.classList.add("dark-mode");
+
+      if (appSettings.glowIntensity !== undefined) {
+        document.getElementById("glowIntensitySlider").value = appSettings.glowIntensity;
+        document.documentElement.style.setProperty("--glow-intensity", appSettings.glowIntensity);
+      }
+
+      buildDatePickerOptions();
+      updateExamWidgetUI();
+      renderCalendarPreviewGrid();
+      renderSubjects();
+      renderTimetablePreview();
+      renderHomework();
+      applyAccentColor(appSettings.accentColor);
+      updateActiveDot(appSettings.accentColor);
+      updateActiveShapeDot(appSettings.patternShape);
+      renderPattern();
+      setupSwipeWidget();
+      updateGreeting();
+
+      applySlideOrder(false);
+      renderWidgetToggles();
+      updateThemeColorMeta();
+
+      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => {
+        if (appSettings.theme === "auto") {
+          if (e.matches) document.body.classList.add("dark-mode");
+          else document.body.classList.remove("dark-mode");
+          applyAccentColor(appSettings.accentColor);
+          renderPattern();
+          updateThemeColorMeta();
+        }
+      });
+
+      const wrapper = document.getElementById("timetablePreview");
+      if (wrapper) wrapper.addEventListener("click", handleTimetableClick);
+    }
+
+    function updateThemeColorMeta() {
+      const isDark = document.body.classList.contains("dark-mode");
+      const bgColor = isDark ? "#07080c" : "#eef2f8";
+      const meta = document.getElementById("themeColorMeta");
+      if (meta) meta.content = bgColor;
+      document.documentElement.style.backgroundColor = bgColor;
+    }
+
+    function handleTimetableClick(e) {
+      if (e.target.closest(".tt-expand-btn")) { e.stopPropagation(); toggleTimetableExpand(); return; }
+      const dayBlock = e.target.closest("[data-tt-day]");
+      if (dayBlock) {
+        const dayNum = parseInt(dayBlock.dataset.ttDay, 10);
+        if (!isNaN(dayNum)) { openTimetableDayModal(dayNum); return; }
+      }
+      openTimetablePickerModal();
+    }
+
+    function saveSettings() { try { localStorage.setItem("gradeflow_settings", JSON.stringify(appSettings)); } catch (e) {} }
+    function saveSubjects() { try { localStorage.setItem("gradeflow_subjects", JSON.stringify(subjectsData)); } catch (e) {} }
+
+    function escapeHTML(value) {
+      if (value === null || value === undefined) return "";
+      return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+    }
+
+    function getColorForSubject(subjectName) {
+      if (!subjectName) return FALLBACK_COLOR;
+      const key = subjectName.trim();
+      if (appSettings.subjectColors && appSettings.subjectColors[key]) return appSettings.subjectColors[key];
+      for (const day in appSettings.timetable) {
+        const found = (appSettings.timetable[day] || []).find(s => s.subject === key && s.color);
+        if (found) return found.color;
+      }
+      return FALLBACK_COLOR;
+    }
+
+    function setColorForSubject(subjectName, color) {
+      if (!subjectName || !color) return;
+      if (!appSettings.subjectColors) appSettings.subjectColors = {};
+      appSettings.subjectColors[subjectName.trim()] = color;
+      for (const day in appSettings.timetable) {
+        (appSettings.timetable[day] || []).forEach(slot => { if (slot.subject === subjectName.trim()) slot.color = color; });
+      }
+      saveSettings();
+    }
+
+    function getWeights(subjectName) {
+      const w = (appSettings.weights && appSettings.weights[subjectName]) || "60-40";
+      const parts = w.split("-").map(Number);
+      return { klausur: parts[0] / 100, test: parts[1] / 100 };
+    }
+
+    function getSubjectAverage(sub) {
+      const kl = (sub.klausuren || []).map(g => parseFloat(g)).filter(n => !isNaN(n));
+      const te = (sub.tests || []).map(g => parseFloat(g)).filter(n => !isNaN(n));
+      if (kl.length === 0 && te.length === 0) return null;
+      const w = getWeights(sub.name);
+      const klAvg = kl.length > 0 ? kl.reduce((a, b) => a + b, 0) / kl.length : null;
+      const teAvg = te.length > 0 ? te.reduce((a, b) => a + b, 0) / te.length : null;
+      if (klAvg !== null && teAvg !== null) return klAvg * w.klausur + teAvg * w.test;
+      if (klAvg !== null) return klAvg;
+      return teAvg;
+    }
+
+    function updateOverallAverage() {
+      const valid = subjectsData.map(s => getSubjectAverage(s)).filter(a => a !== null);
+      const g = document.getElementById("overallGrade"); const c = document.getElementById("subjectCount");
+      if (g) g.textContent = valid.length === 0 ? "—" : (valid.reduce((a, b) => a + b, 0) / valid.length).toFixed(1);
+      if (c) c.textContent = `${subjectsData.length} Fächer aktiv`;
+    }
+
+    function renderSubjects() {
+      const list = document.getElementById("subjectList"); list.innerHTML = "";
+      subjectsData.forEach(sub => {
+        const card = document.createElement("div");
+        card.className = "subject-card";
+        card.dataset.subjectName = sub.name;
+        card.addEventListener("click", () => openSubjectDetail(card.dataset.subjectName));
+        const avg = getSubjectAverage(sub);
+        card.innerHTML = `
+          <div class="subject-info" style="pointer-events:none;">
+            <div class="subject-emoji">${sub.emoji}</div>
+            <div>
+              <div class="subject-name">${escapeHTML(sub.name)}</div>
+              <div class="subject-meta">${escapeHTML(sub.meta)}</div>
+            </div>
+          </div>
+          <div class="subject-grade-badge" style="pointer-events:none;">${avg !== null ? avg.toFixed(1) : "—"}</div>`;
+        list.appendChild(card);
+      });
+      updateOverallAverage();
+    }
+
+    function openSubjectDetail(name) {
+      currentActiveSubjectName = name;
+      const sub = subjectsData.find(s => s.name === name);
+      if (!sub) return;
+      document.body.classList.add("modal-open");
+      document.getElementById("detailModalTitle").textContent = `${sub.emoji} ${sub.name}`;
+      const avg = getSubjectAverage(sub);
+      document.getElementById("detailModalMeta").textContent = `Gesamtschnitt: ${avg !== null ? avg.toFixed(1) : "—"}`;
+      document.getElementById("detailFolderCategory").classList.remove("expanded");
+
+      const klC = document.getElementById("detailKlausurenList"); klC.innerHTML = "";
+      if (sub.klausuren && sub.klausuren.length > 0) {
+        sub.klausuren.forEach((g, idx) => {
+          const item = document.createElement("div"); item.className = "clean-list-item";
+          item.innerHTML = `<span>Klausur #${idx + 1}: <strong>${escapeHTML(g)}</strong></span><div class="action-btn-group"></div>`;
+          const grp = item.querySelector(".action-btn-group");
+          const e = document.createElement("button"); e.className = "icon-action-btn"; e.textContent = "✏️";
+          e.onclick = (ev) => { ev.stopPropagation(); promptEditGrade(sub.name, 'klausuren', idx); };
+          const d = document.createElement("button"); d.className = "icon-action-btn danger"; d.textContent = "🗑️";
+          d.onclick = (ev) => { ev.stopPropagation(); promptDeleteGrade(sub.name, 'klausuren', idx); };
+          grp.appendChild(e); grp.appendChild(d); klC.appendChild(item);
+        });
+      } else klC.innerHTML = `<div style="font-size: 0.72rem; color: var(--text-sub);">Keine Klausuren eingetragen.</div>`;
+
+      const teC = document.getElementById("detailTestsList"); teC.innerHTML = "";
+      if (sub.tests && sub.tests.length > 0) {
+        sub.tests.forEach((g, idx) => {
+          const item = document.createElement("div"); item.className = "clean-list-item";
+          item.innerHTML = `<span>Test #${idx + 1}: <strong>${escapeHTML(g)}</strong></span><div class="action-btn-group"></div>`;
+          const grp = item.querySelector(".action-btn-group");
+          const e = document.createElement("button"); e.className = "icon-action-btn"; e.textContent = "✏️";
+          e.onclick = (ev) => { ev.stopPropagation(); promptEditGrade(sub.name, 'tests', idx); };
+          const d = document.createElement("button"); d.className = "icon-action-btn danger"; d.textContent = "🗑️";
+          d.onclick = (ev) => { ev.stopPropagation(); promptDeleteGrade(sub.name, 'tests', idx); };
+          grp.appendChild(e); grp.appendChild(d); teC.appendChild(item);
+        });
+      } else teC.innerHTML = `<div style="font-size: 0.72rem; color: var(--text-sub);">Keine Tests eingetragen.</div>`;
+
+      const currentWeight = (appSettings.weights && appSettings.weights[name]) || "60-40";
+      document.querySelectorAll("#weightOptions .weight-option").forEach(el => el.classList.toggle("active", el.dataset.weight === currentWeight));
+
+      document.getElementById("whatIfSlider").value = "3.0";
+      calculateWhatIf(3.0);
+      document.getElementById("subjectDetailModal").classList.add("open");
+    }
+
+    function setWeight(k) {
+      if (!currentActiveSubjectName) return;
+      if (!appSettings.weights) appSettings.weights = {};
+      appSettings.weights[currentActiveSubjectName] = k;
+      saveSettings();
+      document.querySelectorAll("#weightOptions .weight-option").forEach(el => el.classList.toggle("active", el.dataset.weight === k));
+      const sub = subjectsData.find(s => s.name === currentActiveSubjectName);
+      if (sub) {
+        const avg = getSubjectAverage(sub);
+        document.getElementById("detailModalMeta").textContent = `Gesamtschnitt: ${avg !== null ? avg.toFixed(1) : "—"}`;
+      }
+      renderSubjects();
+      calculateWhatIf(document.getElementById("whatIfSlider").value);
+    }
+
+    function closeSubjectDetail() { document.getElementById("subjectDetailModal").classList.remove("open"); checkModalState(); currentActiveSubjectName = ""; }
+    function toggleDetailFolder() { document.getElementById("detailFolderCategory").classList.toggle("expanded"); }
+
+    function calculateWhatIf(target) {
+      document.getElementById("targetGradeLabel").textContent = target;
+      const sub = subjectsData.find(s => s.name === currentActiveSubjectName);
+      const avg = sub ? (getSubjectAverage(sub) || 2.0) : 2.0;
+      const t = parseFloat(target);
+      const needed = Math.min(6, Math.max(1, (t * 2 - avg).toFixed(1)));
+      document.getElementById("whatIfResult").textContent = `Um auf Schnitt ${t.toFixed(1)} zu kommen, benötigst du ca. Note ${needed}.`;
+    }
+
+    function getEmojiForSubject(name) {
+      const found = subjectsData.find(s => s.name.toLowerCase() === name.toLowerCase());
+      return found ? found.emoji : "📝";
+    }
+
+    function getDateForDay(dayNum) {
+      const current = new Date();
+      const currentDay = current.getDay() === 0 ? 7 : current.getDay();
+      const result = new Date(current);
+      result.setDate(current.getDate() + (dayNum - currentDay));
+      return result;
+    }
+
+    function renderTimetablePreview() {
+      const container = document.getElementById("ttDayView");
+      const wrapper = document.getElementById("timetablePreview");
+      if (!container || !wrapper) return;
+      const jsDay = new Date().getDay();
+      const todayInOurSystem = jsDay === 0 ? null : jsDay;
+      let daysToShow;
+      if (todayInOurSystem === null || todayInOurSystem === 6) daysToShow = [1, 2];
+      else if (todayInOurSystem === 5) daysToShow = [5, 1];
+      else daysToShow = [todayInOurSystem, todayInOurSystem + 1];
+      const monthNames = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
+      const compactLimit = 3;
+      if (isTimetableExpanded) wrapper.classList.add("expanded"); else wrapper.classList.remove("expanded");
+      let html = "";
+      daysToShow.forEach((dayNum, dayIdx) => {
+        const slots = appSettings.timetable[dayNum] || [];
+        const isFirstDay = dayIdx === 0;
+        if (!isTimetableExpanded && !isFirstDay) return;
+        let label;
+        if (isFirstDay) {
+          if (todayInOurSystem === null || todayInOurSystem === 6) label = "Nächster Schultag";
+          else if (todayInOurSystem === 5) label = "Heute (Fr)";
+          else label = "Heute";
+        } else label = "Morgen";
+        const d = getDateForDay(dayNum);
+        const dateStr = `${d.getDate()}. ${monthNames[d.getMonth()]}`;
+        const visibleSlots = isTimetableExpanded ? slots : slots.slice(0, compactLimit);
+        const hiddenSlots = isTimetableExpanded ? [] : slots.slice(compactLimit);
+        html += `<div class="tt-day-block" data-tt-day="${dayNum}" style="animation-delay: ${dayIdx * 60}ms;">`;
+        html += `<div class="tt-day-header"><span>${label}</span><span class="tt-day-date">${dateStr}</span></div>`;
+        html += `<div class="tt-day-list">`;
+        if (slots.length === 0) html += `<div class="tt-empty">Frei 🎉</div>`;
+        else {
+          visibleSlots.forEach(slot => { html += renderTtSlot(slot); });
+          hiddenSlots.forEach((slot, idx) => { html += renderTtSlot(slot, true, idx * 40); });
+        }
+        html += `</div></div>`;
+      });
+      const firstDaySlots = (appSettings.timetable[daysToShow[0]] || []).length;
+      const totalFollowingDays = daysToShow.length - 1;
+      const hasMoreFirstDay = firstDaySlots > compactLimit;
+      if (hasMoreFirstDay || (isTimetableExpanded && totalFollowingDays > 0)) {
+        const btnText = isTimetableExpanded ? "Weniger anzeigen" : (totalFollowingDays > 0 ? `Alle ${firstDaySlots} Fächer & Folgetage` : `Alle ${firstDaySlots} Fächer`);
+        html += `<button class="tt-expand-btn" type="button"><span>${btnText}</span><span class="tt-chevron">▾</span></button>`;
+      } else if (totalFollowingDays > 0 && !isTimetableExpanded) {
+        html += `<button class="tt-expand-btn" type="button"><span>Folgetage anzeigen</span><span class="tt-chevron">▾</span></button>`;
+      }
+      container.innerHTML = html;
+    }
+
+    function renderTtSlot(slot, hidden = false, delay = 0) {
+      const emoji = getEmojiForSubject(slot.subject);
+      const color = getColorForSubject(slot.subject);
+      const cls = hidden ? "tt-slot tt-hidden" : "tt-slot";
+      const style = hidden ? `style="animation-delay: ${delay}ms;"` : "";
+      return `<div class="${cls}" ${style}>
+        <div class="tt-dot" style="color: ${color}; background: ${color}"></div>
+        <div class="tt-slot-emoji">${emoji}</div>
+        <div class="tt-slot-info">
+          <span class="tt-slot-title">${escapeHTML(slot.subject)}</span>
+          <span class="tt-slot-time">${escapeHTML(slot.time)}</span>
+        </div>
+      </div>`;
+    }
+
+    function toggleTimetableExpand() {
+      isTimetableExpanded = !isTimetableExpanded;
+      const wrapper = document.getElementById("timetablePreview");
+      const oldHeight = wrapper.offsetHeight;
+      renderTimetablePreview();
+      const newHeight = wrapper.offsetHeight;
+      wrapper.style.height = oldHeight + "px";
+      wrapper.style.overflow = "hidden";
+      requestAnimationFrame(() => {
+        wrapper.style.transition = "height 0.5s cubic-bezier(0.16, 1, 0.3, 1)";
+        wrapper.style.height = newHeight + "px";
+        const cleanup = () => { wrapper.style.height = ""; wrapper.style.overflow = ""; wrapper.style.transition = ""; wrapper.removeEventListener("transitionend", cleanup); };
+        wrapper.addEventListener("transitionend", cleanup);
+        setTimeout(cleanup, 700);
+      });
+    }
+
+    function openTimetablePickerModal() { document.body.classList.add("modal-open"); document.getElementById("timetablePickerModal").classList.add("open"); }
+    function closeTimetablePickerModal() { document.getElementById("timetablePickerModal").classList.remove("open"); checkModalState(); }
+
+    function openTimetableDayModal(dayIndex) {
+      activeTimetableDay = dayIndex;
+      isTimetableEditMode = false;
+      const btn = document.getElementById("ttEditToggleBtn");
+      btn.classList.remove("active"); btn.textContent = "Bearbeiten";
+      const dayNames = { 1: "Montag", 2: "Dienstag", 3: "Mittwoch", 4: "Donnerstag", 5: "Freitag" };
+      document.getElementById("ttDayModalTitle").textContent = dayNames[dayIndex];
+      closeTimetablePickerModal();
+      renderDayModalContent();
+      document.body.classList.add("modal-open");
+      document.getElementById("timetableDayModal").classList.add("open");
+    }
+
+    function closeTimetableDayModal() { document.getElementById("timetableDayModal").classList.remove("open"); renderTimetablePreview(); checkModalState(); }
+    function backToTimetablePicker() { document.getElementById("timetableDayModal").classList.remove("open"); openTimetablePickerModal(); }
+    function toggleTimetableEdit() {
+      isTimetableEditMode = !isTimetableEditMode;
+      const btn = document.getElementById("ttEditToggleBtn");
+      if (isTimetableEditMode) { btn.classList.add("active"); btn.textContent = "Fertig"; }
+      else { btn.classList.remove("active"); btn.textContent = "Bearbeiten"; saveSettings(); }
+      renderDayModalContent();
+    }
+
+    function renderDayModalContent() {
+      const c = document.getElementById("ttDayModalList"); c.innerHTML = "";
+      const a = document.getElementById("ttDayAddButtonContainer");
+      const slots = appSettings.timetable[activeTimetableDay] || [];
+      if (slots.length === 0 && !isTimetableEditMode) c.innerHTML = `<div class="tt-empty" style="text-align:center; padding: 20px 0;">An diesem Tag ist frei 🎉</div>`;
+      else slots.forEach((slot, idx) => {
+        const emoji = getEmojiForSubject(slot.subject); const color = getColorForSubject(slot.subject);
+        const ec = isTimetableEditMode ? "edit-mode" : "";
+        const ch = isTimetableEditMode ? `onclick="openTtSlotPrompt(${activeTimetableDay}, ${idx})"` : "";
+        c.innerHTML += `<div class="tt-slot ${ec}" ${ch}>
+          <div class="tt-dot" style="color: ${color}; background: ${color}"></div>
+          <div class="tt-slot-emoji">${emoji}</div>
+          <div class="tt-slot-info">
+            <span class="tt-slot-title">${escapeHTML(slot.subject)}</span>
+            <span class="tt-slot-time">${escapeHTML(slot.time)}</span>
+          </div>
+          ${isTimetableEditMode ? `<div style="font-size:0.8rem; opacity: 0.6;">✏️</div>` : ''}
+        </div>`;
+      });
+      a.style.display = isTimetableEditMode ? "block" : "none";
+    }
+
+    function openTtSlotPromptFromDay() { openTtSlotPrompt(activeTimetableDay, -1); }
+
+    function openTtSlotPrompt(day, index) {
+      activeTimetableDay = day; pendingTtIndex = index;
+      const subjInput = document.getElementById("ttPromptSubject");
+      const delBtn = document.getElementById("ttPromptDeleteBtn");
+      const smartList = document.getElementById("ttSmartSubjectList"); smartList.innerHTML = "";
+      if (subjectsData.length > 0) {
+        subjectsData.forEach(sub => {
+          const pill = document.createElement("div");
+          pill.className = "smart-subject-pill";
+          pill.innerHTML = `${sub.emoji} ${escapeHTML(sub.name)}`;
+          pill.onclick = () => { subjInput.value = sub.name; selectTtColor(getColorForSubject(sub.name)); };
+          smartList.appendChild(pill);
+        });
+      } else smartList.innerHTML = `<div class="tt-empty">Keine Fächer angelegt.</div>`;
+      buildTimePickers();
+      if (index >= 0) {
+        const slot = appSettings.timetable[day][index];
+        subjInput.value = slot.subject;
+        const parts = slot.time.split("-");
+        if (parts.length === 2) {
+          const sp = parts[0].trim().split(":"); const ep = parts[1].trim().split(":");
+          if (sp.length === 2) setPickerTime("Start", sp[0], sp[1]);
+          if (ep.length === 2) setPickerTime("End", ep[0], ep[1]);
+        }
+        selectTtColor(getColorForSubject(slot.subject));
+        delBtn.style.display = "block";
+        document.getElementById("ttPromptTitle").textContent = "Fach bearbeiten ✏️";
+      } else {
+        subjInput.value = ""; setPickerTime("Start", "08", "00"); setPickerTime("End", "09", "30");
+        selectTtColor(FALLBACK_COLOR); delBtn.style.display = "none";
+        document.getElementById("ttPromptTitle").textContent = "Neues Fach ➕";
+      }
+      document.getElementById("timetableDayModal").classList.remove("open");
+      document.getElementById("ttSlotPromptModal").classList.add("open");
+    }
+
+    function buildTimePickers() {
+      buildSinglePickerCol('colStartHour', 0, 23, 1);
+      buildSinglePickerCol('colStartMin', 0, 55, 5);
+      buildSinglePickerCol('colEndHour', 0, 23, 1);
+      buildSinglePickerCol('colEndMin', 0, 55, 5);
+    }
+
+    function buildSinglePickerCol(colId, min, max, step) {
+      const col = document.getElementById(colId);
+      col.innerHTML = `<div style="height: 32px;"></div>`;
+      for (let i = min; i <= max; i += step) {
+        const val = i < 10 ? "0" + i : "" + i;
+        col.innerHTML += `<div class="time-picker-item" data-val="${val}">${val}</div>`;
+      }
+      col.innerHTML += `<div style="height: 32px;"></div>`;
+    }
+
+    function setPickerTime(prefix, hour, min) {
+      requestAnimationFrame(() => { setColValue('col' + prefix + 'Hour', hour); setColValue('col' + prefix + 'Min', min); updateTimePreview(); });
+    }
+
+    function setColValue(colId, valStr) {
+      const col = document.getElementById(colId);
+      col.querySelectorAll('.time-picker-item').forEach(item => { if (item.dataset.val === valStr) col.scrollTop = item.offsetTop - col.clientHeight / 2 + item.clientHeight / 2; });
+      highlightSelectedPickerItem(colId);
+    }
+
+    let scrollRafPending = false;
+    function onPickerScroll(prefix) {
+      if (scrollRafPending) return;
+      scrollRafPending = true;
+      requestAnimationFrame(() => { highlightSelectedPickerItem('col' + prefix); updateTimePreview(); scrollRafPending = false; });
+    }
+
+    function highlightSelectedPickerItem(colId) {
+      const col = document.getElementById(colId);
+      const items = col.querySelectorAll('.time-picker-item');
+      const center = col.scrollTop + col.clientHeight / 2;
+      let closest = null, md = Infinity;
+      items.forEach(item => { const diff = Math.abs(center - (item.offsetTop + item.clientHeight / 2)); if (diff < md) { md = diff; closest = item; } });
+      items.forEach(i => i.classList.remove('selected'));
+      if (closest) closest.classList.add('selected');
+    }
+
+    function getSelectedPickerValue(prefix) {
+      const s = document.getElementById('col' + prefix).querySelector('.time-picker-item.selected');
+      return s ? s.dataset.val : "00";
+    }
+
+    function updateTimePreview() {
+      const sh = getSelectedPickerValue('StartHour'), sm = getSelectedPickerValue('StartMin');
+      const eh = getSelectedPickerValue('EndHour'), em = getSelectedPickerValue('EndMin');
+      document.getElementById('timePreviewBadge').textContent = `Ausgewählt: ${sh}:${sm} - ${eh}:${em}`;
+    }
+
+    function closeTtSlotPrompt() { document.getElementById("ttSlotPromptModal").classList.remove("open"); document.getElementById("timetableDayModal").classList.add("open"); renderDayModalContent(); }
+
+    function selectTtColor(color, element = null) {
+      currentTtColor = color;
+      document.querySelectorAll("#ttColorPicker .color-dot").forEach(dot => {
+        const a = element === dot || rgbToHex(dot.style.backgroundColor).toLowerCase() === color.toLowerCase();
+        dot.classList.toggle("active", a);
+      });
+    }
+
+    function confirmTtSlot() {
+      const subj = document.getElementById("ttPromptSubject").value.trim();
+      if (!subj) return;
+      const sh = getSelectedPickerValue('StartHour'), sm = getSelectedPickerValue('StartMin');
+      const eh = getSelectedPickerValue('EndHour'), em = getSelectedPickerValue('EndMin');
+      const newSlot = { subject: subj, time: `${sh}:${sm} - ${eh}:${em}`, color: currentTtColor };
+      if (pendingTtIndex >= 0) appSettings.timetable[activeTimetableDay][pendingTtIndex] = newSlot;
+      else appSettings.timetable[activeTimetableDay].push(newSlot);
+      setColorForSubject(subj, currentTtColor);
+      saveSettings();
+      closeTtSlotPrompt();
+    }
+
+    function deleteTtSlot() {
+      if (pendingTtIndex < 0) return;
+      document.getElementById("ttSlotPromptModal").classList.remove("open");
+      pendingDeleteTtDay = activeTimetableDay; pendingDeleteTtIdx = pendingTtIndex;
+      const slot = appSettings.timetable[pendingDeleteTtDay][pendingDeleteTtIdx];
+      const dN = { 1: "Montag", 2: "Dienstag", 3: "Mittwoch", 4: "Donnerstag", 5: "Freitag" };
+      document.getElementById("ttSlotDeletePromptText").innerHTML = `Möchtest du <strong style="color: var(--text-color);">${escapeHTML(slot.subject)}</strong> am <strong style="color: var(--text-color);">${dN[pendingDeleteTtDay]}</strong> (${escapeHTML(slot.time)}) wirklich löschen?`;
+      document.getElementById("ttSlotDeleteConfirmModal").classList.add("open");
+    }
+
+    function closeTtSlotDeleteConfirm() { document.getElementById("ttSlotDeleteConfirmModal").classList.remove("open"); document.getElementById("ttSlotPromptModal").classList.add("open"); pendingDeleteTtDay = null; pendingDeleteTtIdx = -1; }
+    function executeDeleteTtSlot() {
+      if (pendingDeleteTtDay !== null && pendingDeleteTtIdx >= 0) { appSettings.timetable[pendingDeleteTtDay].splice(pendingDeleteTtIdx, 1); saveSettings(); }
+      document.getElementById("ttSlotDeleteConfirmModal").classList.remove("open");
+      pendingDeleteTtDay = null; pendingDeleteTtIdx = -1;
+      document.getElementById("timetableDayModal").classList.add("open");
+      renderDayModalContent();
+    }
+
+    function getHomeworkStatus(hw) {
+      if (hw.done) return { text: "Erledigt", color: "#34c759", done: true };
+      const t = new Date(); t.setHours(0, 0, 0, 0);
+      const d = new Date(hw.dueDate); d.setHours(0, 0, 0, 0);
+      const diff = Math.round((d - t) / 86400000);
+      if (diff < 0) return { text: "Überfällig!", color: "#ff3b30" };
+      if (diff === 0) return { text: "Heute fällig", color: "#ff9500" };
+      if (diff === 1) return { text: "Morgen fällig", color: "#ff9500" };
+      return { text: `Noch ${diff} Tage`, color: "var(--text-sub)" };
+    }
+
+    function renderHomework() {
+      const list = document.getElementById("homeworkList"); if (!list) return;
+      list.innerHTML = "";
+      const hw = appSettings.homework || [];
+      if (hw.length === 0) { list.innerHTML = `<div class="homework-empty">Keine Hausaufgaben 🎉</div>`; renderHomeworkWidgetSlide(); if (document.getElementById("calendarModal").classList.contains("open")) renderBigCalendar(); renderCalendarPreviewGrid(); return; }
+      const sorted = hw.slice().sort((a, b) => { if (a.done !== b.done) return a.done ? 1 : -1; return new Date(a.dueDate) - new Date(b.dueDate); });
+      sorted.forEach(h => {
+        const status = getHomeworkStatus(h);
+        const color = getColorForSubject(h.subject);
+        const emoji = getEmojiForSubject(h.subject);
+        const item = document.createElement("div");
+        item.className = "homework-item" + (h.done ? " done" : "");
+        item.innerHTML = `
+          <div class="homework-item-colorbar" style="background: ${color}; box-shadow: 0 0 8px ${color}80;"></div>
+          <div class="homework-checkbox" onclick="event.stopPropagation(); toggleHomeworkDone('${h.id}');">${h.done ? "✓" : ""}</div>
+          <div class="homework-item-info">
+            <div class="homework-item-subject" style="color: ${color};">${emoji} ${escapeHTML(h.subject)}</div>
+            <div class="homework-item-title">${escapeHTML(h.description || "—")}</div>
+            <div class="homework-item-meta" style="color: ${status.color};">${status.text}</div>
+          </div>
+          <div class="homework-item-actions">
+            <button class="icon-action-btn" onclick="event.stopPropagation(); openHomeworkModal('${h.id}');">✏️</button>
+          </div>
+        `;
+        item.onclick = () => openHomeworkModal(h.id);
+        list.appendChild(item);
+      });
+      renderHomeworkWidgetSlide();
+      if (document.getElementById("calendarModal").classList.contains("open")) renderBigCalendar();
+      renderCalendarPreviewGrid();
+    }
+
+    function toggleHomeworkDone(id) {
+      const h = appSettings.homework.find(x => x.id === id);
+      if (!h) return;
+      h.done = !h.done;
+      saveSettings(); renderHomework();
+    }
+
+    function buildDatePickerOptions() {
+      const daySel = document.getElementById("homeworkDateDay");
+      const monSel = document.getElementById("homeworkDateMonth");
+      const yrSel = document.getElementById("homeworkDateYear");
+      if (!daySel) return;
+      daySel.innerHTML = "";
+      for (let d = 1; d <= 31; d++) daySel.innerHTML += `<option value="${d}">${d}.</option>`;
+      monSel.innerHTML = "";
+      MONTH_NAMES_LONG.forEach((m, i) => monSel.innerHTML += `<option value="${i}">${m}</option>`);
+      yrSel.innerHTML = "";
+      const cy = new Date().getFullYear();
+      for (let y = cy; y <= cy + 5; y++) yrSel.innerHTML += `<option value="${y}">${y}</option>`;
+    }
+
+    function setDatePicker(dateStr) {
+      const parts = dateStr.split("-").map(Number);
+      document.getElementById("homeworkDateYear").value = parts[0];
+      document.getElementById("homeworkDateMonth").value = parts[1] - 1;
+      document.getElementById("homeworkDateDay").value = parts[2];
+      updateDatePreview();
+    }
+
+    function getDatePickerValue() {
+      const d = parseInt(document.getElementById("homeworkDateDay").value, 10);
+      const m = parseInt(document.getElementById("homeworkDateMonth").value, 10);
+      const y = parseInt(document.getElementById("homeworkDateYear").value, 10);
+      const maxDay = new Date(y, m + 1, 0).getDate();
+      const safeD = Math.min(d, maxDay);
+      return { y, m, d: safeD, iso: `${y}-${String(m + 1).padStart(2, "0")}-${String(safeD).padStart(2, "0")}` };
+    }
+
+    function updateDatePreview() {
+      const v = getDatePickerValue();
+      const date = new Date(v.y, v.m, v.d);
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const target = new Date(v.y, v.m, v.d); target.setHours(0, 0, 0, 0);
+      const diff = Math.round((target - today) / 86400000);
+      const days = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+      let relText = "";
+      if (diff === 0) relText = " · Heute";
+      else if (diff === 1) relText = " · Morgen";
+      else if (diff === -1) relText = " · Gestern";
+      else if (diff < 0) relText = ` · vor ${Math.abs(diff)} Tagen`;
+      else relText = ` · in ${diff} Tagen`;
+      document.getElementById("homeworkDatePreview").textContent = `${days[date.getDay()]}, ${v.d}. ${MONTH_NAMES_LONG[v.m]} ${v.y}${relText}`;
+      const maxDay = new Date(v.y, v.m + 1, 0).getDate();
+      if (parseInt(document.getElementById("homeworkDateDay").value) > maxDay) {
+        document.getElementById("homeworkDateDay").value = maxDay;
+        updateDatePreview();
+      }
+    }
+
+    function openHomeworkModal(id = null) {
+      editingHomeworkId = id;
+      const title = document.getElementById("homeworkModalTitle");
+      const subjectInput = document.getElementById("homeworkSubjectInput");
+      const descInput = document.getElementById("homeworkDescInput");
+      const deleteBtn = document.getElementById("homeworkDeleteBtn");
+      const pillsC = document.getElementById("homeworkSubjectPills");
+      pillsC.innerHTML = "";
+      if (subjectsData.length > 0) {
+        subjectsData.forEach(sub => {
+          const pill = document.createElement("div");
+          pill.className = "smart-subject-pill";
+          pill.innerHTML = `${sub.emoji} ${escapeHTML(sub.name)}`;
+          pill.onclick = () => { subjectInput.value = sub.name; };
+          pillsC.appendChild(pill);
+        });
+      }
+      if (id) {
+        const h = appSettings.homework.find(x => x.id === id);
+        if (!h) return;
+        title.textContent = "Hausaufgabe bearbeiten ✏️";
+        subjectInput.value = h.subject;
+        descInput.value = h.description || "";
+        setDatePicker(h.dueDate);
+        deleteBtn.style.display = "block";
+      } else {
+        title.textContent = "Neue Hausaufgabe 📚";
+        subjectInput.value = ""; descInput.value = "";
+        const t = new Date(); t.setDate(t.getDate() + 1);
+        setDatePicker(t.toISOString().slice(0, 10));
+        deleteBtn.style.display = "none";
+      }
+      document.body.classList.add("modal-open");
+      document.getElementById("homeworkModal").classList.add("open");
+      setTimeout(() => subjectInput.focus(), 200);
+    }
+
+    function closeHomeworkModal() {
+      document.getElementById("homeworkModal").classList.remove("open");
+      editingHomeworkId = null;
+      checkModalState();
+    }
+
+    function confirmHomework() {
+      const subject = document.getElementById("homeworkSubjectInput").value.trim();
+      const description = document.getElementById("homeworkDescInput").value.trim();
+      const { iso: dueDate } = getDatePickerValue();
+      if (!subject) { document.getElementById("homeworkSubjectInput").focus(); return; }
+      const exists = subjectsData.some(s => s.name.toLowerCase() === subject.toLowerCase());
+      if (!exists) {
+        pendingHomeworkCreateSubject = { subject, description, dueDate };
+        document.getElementById("homeworkModal").classList.remove("open");
+        document.getElementById("homeworkCreateSubjectText").innerHTML = `Das Fach <strong style="color: var(--text-color);">"${escapeHTML(subject)}"</strong> existiert noch nicht. Möchtest du es im Fächer-Ordner anlegen?`;
+        document.getElementById("homeworkCreateSubjectModal").classList.add("open");
+        return;
+      }
+      saveHomework(subject, description, dueDate);
+    }
+
+    function saveHomework(subject, description, dueDate) {
+      if (editingHomeworkId) {
+        const h = appSettings.homework.find(x => x.id === editingHomeworkId);
+        if (h) { h.subject = subject; h.description = description; h.dueDate = dueDate; }
+      } else {
+        appSettings.homework.push({
+          id: "hw_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+          subject, description, dueDate, done: false,
+          createdAt: new Date().toISOString()
+        });
+      }
+      saveSettings();
+      renderHomework();
+      closeHomeworkModal();
+    }
+
+    function closeHomeworkCreateSubjectModal() {
+      document.getElementById("homeworkCreateSubjectModal").classList.remove("open");
+      if (pendingHomeworkCreateSubject) document.getElementById("homeworkModal").classList.add("open");
+      pendingHomeworkCreateSubject = null;
+    }
+
+    function confirmHomeworkCreateSubject() {
+      if (!pendingHomeworkCreateSubject) return;
+      const { subject, description, dueDate } = pendingHomeworkCreateSubject;
+      subjectsData.push({ name: subject, emoji: "📚", klausuren: [], tests: [], meta: "0 Klausuren, 0 Tests" });
+      saveSubjects();
+      renderSubjects();
+      document.getElementById("homeworkCreateSubjectModal").classList.remove("open");
+      pendingHomeworkCreateSubject = null;
+      saveHomework(subject, description, dueDate);
+    }
+
+    function promptDeleteHomework() {
+      if (!editingHomeworkId) return;
+      const h = appSettings.homework.find(x => x.id === editingHomeworkId);
+      if (!h) return;
+      pendingDeleteHomeworkId = editingHomeworkId;
+      document.getElementById("homeworkModal").classList.remove("open");
+      document.getElementById("homeworkDeletePromptText").textContent = `Möchtest du die Hausaufgabe "${h.subject} – ${h.description || "—"}" wirklich löschen?`;
+      document.getElementById("homeworkDeleteConfirmModal").classList.add("open");
+    }
+
+    function closeHomeworkDeleteConfirm() {
+      document.getElementById("homeworkDeleteConfirmModal").classList.remove("open");
+      document.getElementById("homeworkModal").classList.add("open");
+      pendingDeleteHomeworkId = null;
+    }
+
+    function executeDeleteHomework() {
+      if (pendingDeleteHomeworkId) {
+        appSettings.homework = appSettings.homework.filter(h => h.id !== pendingDeleteHomeworkId);
+        saveSettings(); renderHomework();
+      }
+      document.getElementById("homeworkDeleteConfirmModal").classList.remove("open");
+      document.getElementById("homeworkModal").classList.remove("open");
+      editingHomeworkId = null; pendingDeleteHomeworkId = null;
+      checkModalState();
+    }
+
+    function renderHomeworkWidgetSlide() {
+      const ws = document.getElementById("widgetHomeworkList");
+      if (!ws) return;
+      const hw = (appSettings.homework || []).filter(h => !h.done);
+      if (hw.length === 0) { ws.innerHTML = `<div class="widget-homework-empty">Keine Hausaufgaben 🎉</div>`; return; }
+      const sorted = hw.slice().sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+      const top = sorted.slice(0, 3);
+      let html = "";
+      top.forEach(h => {
+        const status = getHomeworkStatus(h);
+        const color = getColorForSubject(h.subject);
+        const emoji = getEmojiForSubject(h.subject);
+        html += `<div class="widget-homework-item">
+          <div class="widget-homework-dot" style="background: ${color}; color: ${color};"></div>
+          <span class="widget-homework-subject" style="color: ${color};">${emoji} ${escapeHTML(h.subject)}</span>
+          <span class="widget-homework-due" style="color: ${status.color};">${status.text}</span>
+        </div>`;
+      });
+      if (sorted.length > 3) html += `<div style="font-size: 0.6rem; color: var(--text-sub); text-align: center; opacity: 0.7;">+ ${sorted.length - 3} weitere</div>`;
+      ws.innerHTML = html;
+    }
+
+    function scrollToHomework() {
+      const box = document.querySelector(".homework-box");
+      if (box) {
+        box.scrollIntoView({ behavior: "smooth", block: "center" });
+        box.style.transition = "box-shadow 0.5s ease";
+        box.style.boxShadow = "0 0 40px rgba(0, 122, 255, 0.4)";
+        setTimeout(() => { box.style.boxShadow = ""; }, 800);
+      }
+    }
+
+    function openCalendarModal() { renderBigCalendar(); document.body.classList.add("modal-open"); document.getElementById("calendarModal").classList.add("open"); }
+    function closeCalendarModal() { document.getElementById("calendarModal").classList.remove("open"); renderCalendarPreviewGrid(); checkModalState(); }
+    function changeMonth(dir) { currentCalendarDate.setMonth(currentCalendarDate.getMonth() + dir); renderBigCalendar(); }
+
+    function openMonthPickerModal() {
+      const c = document.getElementById("monthPickerList"); c.innerHTML = "";
+      MONTH_NAMES_LONG.forEach((name, idx) => {
+        const item = document.createElement("div");
+        item.className = idx === currentCalendarDate.getMonth() ? "scroll-picker-item active" : "scroll-picker-item";
+        item.textContent = name;
+        item.onclick = () => { currentCalendarDate.setMonth(idx); renderBigCalendar(); closeMonthPickerModal(); };
+        c.appendChild(item);
+      });
+      document.getElementById("calendarModal").classList.remove("open");
+      document.getElementById("monthPickerModal").classList.add("open");
+    }
+    function closeMonthPickerModal() { document.getElementById("monthPickerModal").classList.remove("open"); document.getElementById("calendarModal").classList.add("open"); }
+
+    function openYearPickerModal() {
+      const ry = new Date().getFullYear(); const sy = currentCalendarDate.getFullYear();
+      const c = document.getElementById("yearPickerList"); c.innerHTML = ""; let te = null;
+      for (let y = ry - 10; y <= ry + 10; y++) {
+        const item = document.createElement("div");
+        item.className = y === sy ? "scroll-picker-item active" : "scroll-picker-item";
+        item.textContent = y;
+        item.onclick = () => { currentCalendarDate.setFullYear(y); renderBigCalendar(); closeYearPickerModal(); };
+        c.appendChild(item);
+        if (y === ry) te = item;
+      }
+      document.getElementById("calendarModal").classList.remove("open");
+      document.getElementById("yearPickerModal").classList.add("open");
+      if (te) setTimeout(() => { c.scrollTop = te.offsetTop - c.offsetTop - (c.clientHeight / 2) + (te.clientHeight / 2); }, 50);
+    }
+    function closeYearPickerModal() { document.getElementById("yearPickerModal").classList.remove("open"); document.getElementById("calendarModal").classList.add("open"); }
+
+    function openGlassPromptModal(day) {
+      pendingPromptDay = day;
+      document.getElementById("glassPromptInput").value = "Klausur";
+      document.getElementById("glassPromptTitle").textContent = `Termin am ${day}.`;
+      document.body.classList.add("modal-open");
+      document.getElementById("glassPromptModal").classList.add("open");
+      setTimeout(() => document.getElementById("glassPromptInput").focus(), 150);
+    }
+    function closeGlassPromptModal() { document.getElementById("glassPromptModal").classList.remove("open"); checkModalState(); }
+    function handleGlassPromptKey(e) { if (e.key === "Enter") confirmGlassPrompt(); if (e.key === "Escape") closeGlassPromptModal(); }
+    function confirmGlassPrompt() {
+      const val = document.getElementById("glassPromptInput").value.trim();
+      if (val && pendingPromptDay !== null) {
+        appSettings.examsList.push({
+          subject: val,
+          meta: `${pendingPromptDay}. ${MONTH_NAMES_LONG[currentCalendarDate.getMonth()]} ${currentCalendarDate.getFullYear()}`,
+          day: pendingPromptDay, month: currentCalendarDate.getMonth() + 1, year: currentCalendarDate.getFullYear()
+        });
+        appSettings.examsList.sort((a, b) => new Date(a.year, a.month - 1, a.day) - new Date(b.year, b.month - 1, b.day));
+        saveSettings(); renderBigCalendar(); updateExamWidgetUI(); renderCalendarPreviewGrid();
+      }
+      closeGlassPromptModal();
+    }
+
+    function promptDeleteExam(idx) {
+      targetDeleteExamIndex = idx;
+      const ex = appSettings.examsList[idx];
+      document.getElementById("calendarModal").classList.remove("open");
+      document.getElementById("examDeletePromptText").textContent = `Termin "${ex.subject}" (${ex.meta}) wirklich löschen?`;
+      document.getElementById("examDeleteConfirmModal").classList.add("open");
+    }
+    function closeExamDeleteConfirmModal() { document.getElementById("examDeleteConfirmModal").classList.remove("open"); openCalendarModal(); }
+    function executeDeleteExam() {
+      if (targetDeleteExamIndex !== null && targetDeleteExamIndex >= 0) {
+        appSettings.examsList.splice(targetDeleteExamIndex, 1);
+        saveSettings(); updateExamWidgetUI(); renderCalendarPreviewGrid();
+      }
+      targetDeleteExamIndex = null;
+      document.getElementById("examDeleteConfirmModal").classList.remove("open");
+      openCalendarModal();
+    }
+
+    function getHomeworksForDate(day, month, year) {
+      const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      return (appSettings.homework || []).filter(h => !h.done && h.dueDate === dateStr);
+    }
+
+    function renderBigCalendar() {
+      const mIdx = currentCalendarDate.getMonth(), yr = currentCalendarDate.getFullYear();
+      document.getElementById("calendarMonthTitle").textContent = MONTH_NAMES_LONG[mIdx];
+      document.getElementById("calendarYearTitle").textContent = yr;
+      const grid = document.getElementById("bigCalendarGrid"); grid.innerHTML = "";
+      const daysInMonth = new Date(yr, mIdx + 1, 0).getDate();
+      const today = new Date();
+      const isCurrent = today.getMonth() === mIdx && today.getFullYear() === yr;
+
+      for (let i = 1; i <= daysInMonth; i++) {
+        const ex = appSettings.examsList.find(e => e.day === i && e.month === (mIdx + 1) && e.year === yr);
+        const homeworks = getHomeworksForDate(i, mIdx + 1, yr);
+        const cls = "big-calendar-cell" + (ex ? " has-exam" : "") + (isCurrent && i === today.getDate() ? " today-highlight" : "");
+        const cell = document.createElement("div");
+        cell.className = cls;
+
+        let innerHTML = `<span class="day-num">${i}</span>`;
+
+        if (ex) {
+          innerHTML += `<span style="font-size: 0.48rem; opacity: 0.8; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 90%;">${escapeHTML(ex.subject)}</span>`;
+        }
+
+        if (homeworks.length > 0) {
+          const dotsHtml = homeworks.slice(0, 3).map(h => {
+            const c = getColorForSubject(h.subject);
+            return `<div class="hw-dot" style="background: ${c}; color: ${c};"></div>`;
+          }).join("");
+          const moreHtml = homeworks.length > 3 ? `<span class="hw-dot-more">+${homeworks.length - 3}</span>` : "";
+          innerHTML += `<div class="hw-dots">${dotsHtml}${moreHtml}</div>`;
+        }
+
+        cell.innerHTML = innerHTML;
+        cell.onclick = () => openGlassPromptModal(i);
+        grid.appendChild(cell);
+      }
+
+      const listC = document.getElementById("calendarEventsList"); listC.innerHTML = "";
+      const monthEx = appSettings.examsList.filter(e => e.month === (mIdx + 1) && e.year === yr);
+      const monthHw = (appSettings.homework || []).filter(h => {
+        const parts = h.dueDate.split("-").map(Number);
+        return !h.done && parts[1] === (mIdx + 1) && parts[0] === yr;
+      });
+
+      if (monthEx.length === 0 && monthHw.length === 0) {
+        listC.innerHTML = `<div style="font-size: 0.72rem; color: var(--text-sub);">Keine Termine oder Hausaufgaben in diesem Monat.</div>`;
+      } else {
+        monthEx.forEach(ex => {
+          listC.innerHTML += `<div class="clean-list-item"><div>📌 <strong>${ex.day}.:</strong> ${escapeHTML(ex.subject)}</div><div class="action-btn-group"><button class="icon-action-btn danger" onclick="promptDeleteExam(${appSettings.examsList.indexOf(ex)})">🗑️</button></div></div>`;
+        });
+        monthHw.forEach(h => {
+          const parts = h.dueDate.split("-").map(Number);
+          const color = getColorForSubject(h.subject);
+          listC.innerHTML += `<div class="clean-list-item">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:8px;height:8px;border-radius:50%;background:${color};box-shadow:0 0 6px ${color};"></div>
+              <span><strong>${parts[2]}.:</strong> ${escapeHTML(h.subject)} – ${escapeHTML(h.description || "")}</span>
+            </div>
+          </div>`;
+        });
+      }
+    }
+
+    function renderCalendarPreviewGrid() {
+      const grids = document.querySelectorAll("#mainCalendarGrid");
+      const today = new Date();
+      const distanceToMonday = today.getDay() === 0 ? -6 : 1 - today.getDay();
+      const mondayDate = new Date(today);
+      mondayDate.setDate(today.getDate() + distanceToMonday);
+      grids.forEach(grid => {
+        let html = `<div class="calendar-day-header">Mo</div><div class="calendar-day-header">Di</div><div class="calendar-day-header">Mi</div><div class="calendar-day-header">Do</div><div class="calendar-day-header">Fr</div><div class="calendar-day-header">Sa</div><div class="calendar-day-header">So</div>`;
+        for (let i = 0; i < 14; i++) {
+          const d = new Date(mondayDate); d.setDate(mondayDate.getDate() + i);
+          const hasEvent = appSettings.examsList.some(e => e.day === d.getDate() && e.month === d.getMonth() + 1 && e.year === d.getFullYear());
+          const hws = getHomeworksForDate(d.getDate(), d.getMonth() + 1, d.getFullYear());
+          const hasHw = hws.length > 0;
+          let cls = "calendar-cell" + (hasEvent ? " has-exam" : "") + (d.toDateString() === today.toDateString() ? " today-highlight" : "");
+          let innerHTML = `<span>${d.getDate()}</span>`;
+          if (hasHw) {
+            const dots = hws.slice(0, 3).map(h => {
+              const c = getColorForSubject(h.subject);
+              return `<div class="hw-dot" style="background:${c};color:${c};"></div>`;
+            }).join("");
+            innerHTML += `<div class="hw-dots">${dots}</div>`;
+          }
+          html += `<div class="${cls}">${innerHTML}</div>`;
+        }
+        grid.innerHTML = html;
+      });
+    }
+
+    function getSlideDefinitions() {
+      return [
+        { id: "avg", label: "📊 Gesamtdurchschnitt", html: `<div class="widget-slide" onclick="openAverageDetailModal()"><div class="overview-sub">Gesamtdurchschnitt</div><div class="overview-grade" id="overallGrade">—</div><div class="overview-sub" id="subjectCount">${subjectsData.length} Fächer aktiv</div></div>` },
+        { id: "exam", label: "📝 Nächste Klausur", html: `<div class="widget-slide" onclick="startExamWizard()"><div class="overview-sub">Nächste Klausur</div><div class="overview-grade" style="font-size: 2rem; margin: 6px 0;" id="widgetExamSubject">—</div><div class="overview-sub" style="color: var(--text-color); font-weight: 800;" id="widgetExamMeta">—</div></div>` },
+        { id: "cal", label: "📅 Kalender", html: `<div class="widget-slide" onclick="openCalendarModal()"><div class="calendar-wrapper"><div class="overview-sub" style="margin-bottom: 1px;">KALENDER</div><div class="calendar-grid-preview" id="mainCalendarGrid"></div></div></div>` },
+        { id: "hw", label: "📚 Hausaufgaben", html: `<div class="widget-slide" onclick="scrollToHomework()"><div class="overview-sub" style="margin-bottom: 6px;">HAUSAUFGABEN</div><div class="widget-homework-list" id="widgetHomeworkList"></div></div>` }
+      ];
+    }
+
+    function applySlideOrder(save = true) {
+      const defs = getSlideDefinitions();
+      const enabled = appSettings.slideEnabled || {};
+      const active = defs.filter(d => enabled[d.id] !== false);
+      const list = active.length > 0 ? active : defs;
+
+      document.getElementById("widgetSlides").innerHTML = list.map(d => d.html).join("");
+      updateIndicators(list.length);
+      renderCalendarPreviewGrid();
+      updateExamWidgetUI();
+      renderHomeworkWidgetSlide();
+      if (save) { saveSettings(); updateOverallAverage(); }
+    }
+
+    function updateIndicators(count) {
+      const cont = document.getElementById("widgetIndicators");
+      cont.innerHTML = "";
+      for (let i = 0; i < count; i++) {
+        const dot = document.createElement("div");
+        dot.className = "indicator-dot" + (i === 0 ? " active" : "");
+        dot.onclick = (e) => { e.stopPropagation(); setWidgetSlide(i); };
+        cont.appendChild(dot);
+      }
+      currentSlide = 0;
+      const ws = document.getElementById("widgetSlides");
+      if (ws) ws.style.transform = "translateY(0)";
+    }
+
+    function renderWidgetToggles() {
+      const c = document.getElementById("widgetSlidesToggles");
+      if (!c) return;
+      c.innerHTML = "";
+      const defs = getSlideDefinitions();
+
+      defs.forEach(d => {
+        const isOn = appSettings.slideEnabled[d.id] !== false;
+        const item = document.createElement("div");
+        item.className = "widget-toggle-item" + (isOn ? " active" : "");
+        item.innerHTML = `
+          <div class="widget-toggle-label">${d.label}</div>
+          <div class="widget-toggle-switch"></div>
+        `;
+        item.onclick = function(e) {
+          e.stopPropagation();
+
+          const currentlyOn = appSettings.slideEnabled[d.id] !== false;
+          const activeCount = defs.filter(x => appSettings.slideEnabled[x.id] !== false).length;
+          if (currentlyOn && activeCount <= 1) return;
+
+          appSettings.slideEnabled[d.id] = !currentlyOn;
+          saveSettings();
+          item.classList.toggle("active", !currentlyOn);
+          applySlideOrder(false);
+        };
+        c.appendChild(item);
+      });
+    }
+
+    function setupSwipeWidget() {
+      const card = document.getElementById("overviewCard");
+      if (!card) return;
+
+      let startY = 0, startX = 0, hasMoved = false;
+
+      card.addEventListener("touchstart", e => {
+        if (e.touches.length !== 1) return;
+        startY = e.touches[0].clientY;
+        startX = e.touches[0].clientX;
+        hasMoved = false;
+      }, { passive: true });
+
+      card.addEventListener("touchmove", e => {
+        if (e.touches.length !== 1) return;
+        const dy = Math.abs(e.touches[0].clientY - startY);
+        const dx = Math.abs(e.touches[0].clientX - startX);
+        if (dy > 8 || dx > 8) {
+          hasMoved = true;
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      card.addEventListener("touchend", e => {
+        const endY = e.changedTouches[0].clientY;
+        const diff = startY - endY;
+        const maxSlide = document.querySelectorAll(".indicator-dot").length - 1;
+
+        if (hasMoved && Math.abs(diff) > 40) {
+          if (diff > 0 && currentSlide < maxSlide) setWidgetSlide(currentSlide + 1);
+          else if (diff < 0 && currentSlide > 0) setWidgetSlide(currentSlide - 1);
+          e.preventDefault();
+        }
+        hasMoved = false;
+      }, { passive: false });
+
+      let wl = false;
+      card.addEventListener("wheel", e => {
+        e.preventDefault();
+        if (wl) return; wl = true; setTimeout(() => wl = false, 400);
+        const maxSlide = document.querySelectorAll(".indicator-dot").length - 1;
+        if (e.deltaY > 20 && currentSlide < maxSlide) setWidgetSlide(currentSlide + 1);
+        else if (e.deltaY < -20 && currentSlide > 0) setWidgetSlide(currentSlide - 1);
+      }, { passive: false });
+    }
+
+    function setWidgetSlide(index) {
+      currentSlide = index;
+      document.getElementById("widgetSlides").style.transform = `translateY(-${index * 112}px)`;
+      document.querySelectorAll(".indicator-dot").forEach((d, i) => d.classList.toggle("active", i === index));
+    }
+
+    let patternTimeout;
+    function scheduleRenderPattern() { clearTimeout(patternTimeout); patternTimeout = setTimeout(renderPattern, 50); }
+
+    function setGlowIntensity(val) {
+      appSettings.glowIntensity = parseFloat(val);
+      document.documentElement.style.setProperty("--glow-intensity", val);
+      scheduleRenderPattern();
+      saveSettings();
+    }
+
+    function toggleCategory(id) {
+      const cat = document.getElementById(id);
+      const was = cat.classList.contains("expanded");
+      document.querySelectorAll(".menu-category").forEach(c => { if (c.id !== "detailFolderCategory") c.classList.remove("expanded"); });
+      if (!was) cat.classList.add("expanded");
+    }
+
+    function toggleMenu() {
+      const menu = document.getElementById("glassMenu");
+      menu.classList.toggle("open");
+      if (!menu.classList.contains("open")) setTimeout(() => document.querySelectorAll(".menu-category").forEach(c => c.classList.remove("expanded")), 300);
+    }
+
+    window.addEventListener("click", e => {
+      const menu = document.getElementById("glassMenu");
+      const btn = document.querySelector(".header-actions");
+      if (e.target.closest("#widgetSlidesToggles")) return;
+      if (menu.contains(e.target) || btn.contains(e.target)) return;
+      if (menu.classList.contains("open")) {
+        menu.classList.remove("open");
+        setTimeout(() => document.querySelectorAll(".menu-category").forEach(c => c.classList.remove("expanded")), 300);
+      }
+    });
+
+    function selectEmoji(emoji, el) { selectedEmoji = emoji; document.querySelectorAll("#emojiPickerGrid .emoji-option").forEach(o => o.classList.remove("active")); el.classList.add("active"); }
+    function selectEditEmoji(emoji, el) { selectedEditEmoji = emoji; document.querySelectorAll("#emojiEditPickerGrid .emoji-option").forEach(o => o.classList.remove("active")); el.classList.add("active"); }
+
+    function updateGreeting() {
+      const h = new Date().getHours();
+      const g = h < 11 ? "Guten Morgen" : (h >= 17 ? "Guten Abend" : "Hallo");
+      const n = appSettings.userName.trim();
+      document.getElementById("greetingText").textContent = n ? `${g}, ${n}! 👋` : `${g}! 👋`;
+    }
+    function updateName(v) { appSettings.userName = v; saveSettings(); updateGreeting(); }
+
+    function setThemeColor(hex, el) {
+      appSettings.accentColor = hex;
+      applyAccentColor(hex);
+      document.querySelectorAll("#colorPickerGrid .color-dot").forEach(d => d.classList.remove("active"));
+      if (el) el.classList.add("active");
+      saveSettings();
+    }
+
+    function applyAccentColor(hex) {
+      const n = typeof hex === "string" ? hex.toLowerCase() : "#ffffff";
+      const rgb = hexToRgb(n) || { r: 255, g: 255, b: 255 };
+      document.documentElement.style.setProperty("--accent-color", n);
+      document.documentElement.style.setProperty("--accent-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
+      document.documentElement.style.setProperty("--has-accent", "1");
+      document.documentElement.style.setProperty("--ambient-1", `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.16)`);
+      document.documentElement.style.setProperty("--ambient-2", `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.10)`);
+      document.documentElement.style.setProperty("--ambient-3", `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.06)`);
+      scheduleRenderPattern();
+    }
+
+    function hexToRgb(hex) {
+      const n = hex.replace("#", "");
+      if (n.length !== 6) return null;
+      const num = parseInt(n, 16);
+      if (Number.isNaN(num)) return null;
+      return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+    }
+
+    function setPatternShape(shape, el) {
+      appSettings.patternShape = shape;
+      document.querySelectorAll(".shape-dot").forEach(d => d.classList.remove("active"));
+      if (el) el.classList.add("active");
+      scheduleRenderPattern();
+      saveSettings();
+    }
+
+    function updateActiveShapeDot(shape) { document.querySelectorAll(".shape-dot").forEach(d => d.classList.toggle("active", d.dataset.shape === shape)); }
+
+    function renderPattern() {
+      const layer = document.getElementById("patternLayer"); if (!layer) return;
+      const isDark = document.body.classList.contains("dark-mode");
+      const hasAccent = getComputedStyle(document.documentElement).getPropertyValue("--has-accent").trim() === "1";
+      let rgb = hasAccent ? (hexToRgb(appSettings.accentColor || "#ffffff") || { r: 255, g: 255, b: 255 }) : (isDark ? { r: 150, g: 165, b: 200 } : { r: 80, g: 100, b: 155 });
+      const alpha = (hasAccent ? (isDark ? 0.40 : 0.48) : (isDark ? 0.22 : 0.35)) * (0.8 + appSettings.glowIntensity * 12);
+      const size = 130;
+      layer.style.backgroundSize = `${size}px ${size}px`;
+      layer.style.backgroundImage = buildShapePatternDataUri(appSettings.patternShape, rgb, alpha, size);
+    }
+
+    function buildShapePatternDataUri(shape, rgb, alpha, size) {
+      const c = size / 2;
+      const fill = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
+      const blurId = "soft-edge";
+      const blurDef = `<filter id="${blurId}" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="${size * 0.045}"/></filter>`;
+      let m = "";
+      if (shape === "square") m = `<rect x="${c - size * 0.17}" y="${c - size * 0.17}" width="${size * 0.34}" height="${size * 0.34}" rx="${size * 0.1}" fill="${fill}" filter="url(#${blurId})"/>`;
+      else if (shape === "triangle") m = `<polygon points="${c},${c - size * 0.30} ${c + size * 0.30},${c + size * 0.24} ${c - size * 0.30},${c + size * 0.24}" fill="${fill}" stroke="${fill}" stroke-width="${size * 0.05}" stroke-linejoin="round" filter="url(#${blurId})"/>`;
+      else if (shape === "heart") { const s = size * 0.18; m = `<path d="M ${c} ${c + s * 1.3} C ${c} ${c + s * 1.3} ${c - s * 2.0} ${c - s * 0.1} ${c - s * 2.0} ${c - s * 1.0} C ${c - s * 2.0} ${c - s * 1.8} ${c - s * 1.0} ${c - s * 2.0} ${c} ${c - s * 1.0} C ${c + s * 1.0} ${c - s * 2.0} ${c + s * 2.0} ${c - s * 1.8} ${c + s * 2.0} ${c - s * 1.0} C ${c + s * 2.0} ${c - s * 0.1} ${c} ${c + s * 1.3} ${c} ${c + s * 1.3} Z" fill="${fill}" filter="url(#${blurId})"/>`; }
+      else m = `<circle cx="${c}" cy="${c}" r="${size * 0.24}" fill="${fill}" filter="url(#${blurId})"/>`;
+      return `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}px" height="${size}px"><defs>${blurDef}</defs>${m}</svg>`)}")`;
+    }
+
+    function updateActiveDot(hex) {
+      const n = typeof hex === "string" ? hex.toLowerCase() : "#ffffff";
+      document.querySelectorAll("#colorPickerGrid .color-dot").forEach(d => d.classList.toggle("active", rgbToHex(d.style.backgroundColor).toLowerCase() === n));
+    }
+    function rgbToHex(rgb) {
+      if (!rgb) return "";
+      if (rgb.startsWith("#")) return rgb;
+      const m = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+      if (!m) return rgb;
+      return "#" + m.slice(1).map(n => { const h = parseInt(n).toString(16); return h.length === 1 ? "0" + h : h; }).join("");
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark-mode");
+      appSettings.theme = document.body.classList.contains("dark-mode") ? "dark" : "light";
+      applyAccentColor(appSettings.accentColor);
+      renderPattern();
+      updateThemeColorMeta();
+      saveSettings();
+    }
+
+    function handleQuickInput(e) { if (e.key === "Enter") submitQuickInput(); }
+    function submitQuickInput() {
+      const input = document.getElementById("quickInput");
+      const val = input.value.trim(); if (!val) return;
+      const lower = val.toLowerCase();
+      const gradeMatch = val.match(/([0-9]+[.,]?[0-9]*)/);
+      const foundSub = subjectsData.find(s => lower.includes(s.name.toLowerCase()));
+      const hasCat = lower.includes("test") || lower.includes("sonst") || lower.includes("klausur") || lower.includes("prüfung");
+      if (!gradeMatch && foundSub) { pendingSubject = foundSub.name; input.value = ""; openCategoryModalForSubject(); return; }
+      if (gradeMatch) {
+        const raw = gradeMatch[1];
+        if (!validateGradeInput(raw)) { showGlassError(); return; }
+        pendingGrade = raw.replace(',', '.');
+        if (hasCat) pendingCategory = (lower.includes("test") || lower.includes("sonst")) ? "tests" : "klausuren";
+        else { input.value = ""; openCategoryModal(); return; }
+        if (foundSub) { addGradeDirectly(foundSub.name, pendingGrade, pendingCategory); input.value = ""; }
+        else { input.value = ""; openSubjectSelectModal(); }
+        return;
+      }
+      input.value = ""; showGlassCreateSubjectPrompt(val);
+    }
+
+    function openCategoryModalForSubject() { pendingGrade = ""; document.body.classList.add("modal-open"); document.getElementById("categorySelectModal").classList.add("open"); }
+    function openCategoryModal() { document.body.classList.add("modal-open"); document.getElementById("categorySelectModal").classList.add("open"); }
+    function closeCategoryModal() { document.getElementById("categorySelectModal").classList.remove("open"); checkModalState(); }
+    function chooseCategory(cat) { pendingCategory = cat; closeCategoryModal(); if (pendingSubject) openGradePromptModal(); else openSubjectSelectModal(); }
+
+    function openSubjectSelectModal() {
+      const c = document.getElementById("subjectSelectList"); c.innerHTML = "";
+      document.getElementById("selectModalText").textContent = `Note "${pendingGrade}" in welchen Ordner?`;
+      subjectsData.forEach(sub => {
+        const btn = document.createElement("button");
+        btn.className = "btn-cancel";
+        btn.style.cssText = "width:100%;text-align:left;padding:11px 14px;display:flex;align-items:center;gap:10px;";
+        btn.innerHTML = `<span style="font-size: 1.1rem;">${sub.emoji}</span> <strong>${escapeHTML(sub.name)}</strong>`;
+        btn.onclick = () => { pendingSubject = sub.name; addGradeDirectly(pendingSubject, pendingGrade, pendingCategory); closeSubjectSelectModal(); };
+        c.appendChild(btn);
+      });
+      document.body.classList.add("modal-open"); document.getElementById("subjectSelectModal").classList.add("open");
+    }
+    function closeSubjectSelectModal() { document.getElementById("subjectSelectModal").classList.remove("open"); checkModalState(); }
+
+    function openGradePromptModal() {
+      document.getElementById("gradePromptTitle").textContent = `Note für ${pendingSubject} ✏️`;
+      document.getElementById("gradePromptInput").value = "";
+      document.body.classList.add("modal-open");
+      document.getElementById("gradePromptModal").classList.add("open");
+      setTimeout(() => document.getElementById("gradePromptInput").focus(), 150);
+    }
+    function closeGradePromptModal() { document.getElementById("gradePromptModal").classList.remove("open"); checkModalState(); }
+    function handleGradePromptKey(e) { if (e.key === "Enter") confirmGradePrompt(); if (e.key === "Escape") closeGradePromptModal(); }
+    function confirmGradePrompt() {
+      const input = document.getElementById("gradePromptInput");
+      const val = input.value.trim(); if (!val) return;
+      if (!validateGradeInput(val)) { closeGradePromptModal(); showGlassError(); return; }
+      pendingGrade = val.replace(',', '.');
+      addGradeDirectly(pendingSubject, pendingGrade, pendingCategory);
+      closeGradePromptModal();
+    }
+
+    function addGradeDirectly(name, grade, cat) {
+      const sub = subjectsData.find(s => s.name.toLowerCase() === name.toLowerCase());
+      if (sub) {
+        if (!sub[cat]) sub[cat] = [];
+        sub[cat].push(grade);
+        sub.meta = `${sub.klausuren ? sub.klausuren.length : 0} Klausuren, ${sub.tests ? sub.tests.length : 0} Tests`;
+        saveSubjects(); renderSubjects();
+        if (currentActiveSubjectName === sub.name) openSubjectDetail(sub.name);
+      }
+      pendingSubject = "";
+    }
+
+    function validateGradeInput(v) { const n = parseFloat(v.replace(',', '.')); if (isNaN(n)) return false; return n >= 1.0 && n <= 6.0; }
+
+    function showGlassError() { document.body.classList.add("modal-open"); document.getElementById("glassErrorModal").classList.add("open"); }
+    function closeGlassErrorModal() {
+      document.getElementById("glassErrorModal").classList.remove("open");
+      checkModalState();
+      if (pendingSubject) openGradePromptModal();
+      else if (targetEditSub) {
+        const sub = subjectsData.find(s => s.name === targetEditSub);
+        if (sub) {
+          document.getElementById("gradeEditInput").value = sub[targetEditCat][targetEditIdx];
+          document.body.classList.add("modal-open");
+          document.getElementById("gradeEditModal").classList.add("open");
+          setTimeout(() => document.getElementById("gradeEditInput").focus(), 150);
+        }
+      }
+    }
+
+    function showGlassCreateSubjectPrompt(name) {
+      pendingUnknownSubjectName = name;
+      document.getElementById("createSubjectPromptText").innerHTML = `Das Fach <strong style="color: var(--text-color);">"${escapeHTML(name)}"</strong> existiert noch nicht. Anlegen?`;
+      document.body.classList.add("modal-open");
+      document.getElementById("glassCreateSubjectModal").classList.add("open");
+    }
+    function closeGlassCreateSubjectModal() { document.getElementById("glassCreateSubjectModal").classList.remove("open"); pendingUnknownSubjectName = ""; checkModalState(); }
+    function confirmCreateSubjectFromPrompt() {
+      const n = pendingUnknownSubjectName;
+      closeGlassCreateSubjectModal();
+      if (n) {
+        document.getElementById("modalSubjectInput").value = n;
+        selectedEmoji = "📚";
+        document.querySelectorAll("#emojiPickerGrid .emoji-option").forEach((opt, i) => opt.classList.toggle("active", i === 0));
+        openSubjectModal();
+      }
+    }
+
+    function promptDeleteGrade(name, cat, idx) { targetDeleteSub = name; targetDeleteCat = cat; targetDeleteIdx = idx; document.getElementById("subjectDetailModal").classList.remove("open"); document.getElementById("deleteConfirmModal").classList.add("open"); }
+    function closeDeleteConfirmModal() { document.getElementById("deleteConfirmModal").classList.remove("open"); if (targetDeleteSub) openSubjectDetail(targetDeleteSub); else checkModalState(); }
+    function executeDeleteGrade() {
+      const sub = subjectsData.find(s => s.name === targetDeleteSub); if (!sub) return;
+      sub[targetDeleteCat].splice(targetDeleteIdx, 1);
+      sub.meta = `${sub.klausuren ? sub.klausuren.length : 0} Klausuren, ${sub.tests ? sub.tests.length : 0} Tests`;
+      saveSubjects(); renderSubjects();
+      const a = targetDeleteSub; document.getElementById("deleteConfirmModal").classList.remove("open"); openSubjectDetail(a);
+    }
+
+    function promptEditGrade(name, cat, idx) {
+      targetEditSub = name; targetEditCat = cat; targetEditIdx = idx;
+      const sub = subjectsData.find(s => s.name === name); if (!sub) return;
+      document.getElementById("subjectDetailModal").classList.remove("open");
+      document.getElementById("gradeEditInput").value = sub[cat][idx];
+      document.getElementById("gradeEditModal").classList.add("open");
+      setTimeout(() => document.getElementById("gradeEditInput").focus(), 150);
+    }
+    function closeGradeEditModal() { document.getElementById("gradeEditModal").classList.remove("open"); if (targetEditSub) openSubjectDetail(targetEditSub); else checkModalState(); }
+    function handleGradeEditKey(e) { if (e.key === "Enter") confirmEditGrade(); if (e.key === "Escape") closeGradeEditModal(); }
+    function confirmEditGrade() {
+      const input = document.getElementById("gradeEditInput");
+      const val = input.value.trim(); if (!val) return;
+      if (!validateGradeInput(val)) { document.getElementById("gradeEditModal").classList.remove("open"); showGlassError(); return; }
+      const sub = subjectsData.find(s => s.name === targetEditSub);
+      if (sub) {
+        sub[targetEditCat][targetEditIdx] = val.replace(',', '.');
+        sub.meta = `${sub.klausuren ? sub.klausuren.length : 0} Klausuren, ${sub.tests ? sub.tests.length : 0} Tests`;
+        saveSubjects(); renderSubjects();
+        const a = targetEditSub; document.getElementById("gradeEditModal").classList.remove("open"); openSubjectDetail(a);
+      }
+    }
+
+    function openSubjectModal() { document.body.classList.add("modal-open"); document.getElementById("subjectModal").classList.add("open"); setTimeout(() => document.getElementById("modalSubjectInput").focus(), 150); }
+    function closeSubjectModal() { document.getElementById("subjectModal").classList.remove("open"); checkModalState(); document.getElementById("modalSubjectInput").value = ""; }
+    function handleSubjectKey(e) { if (e.key === "Enter") confirmAddSubject(); if (e.key === "Escape") closeSubjectModal(); }
+    function confirmAddSubject() {
+      const input = document.getElementById("modalSubjectInput");
+      const name = input.value.trim(); if (!name) return;
+      subjectsData.push({ name, emoji: selectedEmoji, klausuren: [], tests: [], meta: "0 Klausuren, 0 Tests" });
+      saveSubjects(); renderSubjects(); closeSubjectModal();
+    }
+
+    function openSubjectEditModal() {
+      const sub = subjectsData.find(s => s.name === currentActiveSubjectName); if (!sub) return;
+      document.getElementById("subjectDetailModal").classList.remove("open");
+      document.getElementById("modalSubjectEditInput").value = sub.name;
+      selectedEditEmoji = sub.emoji;
+      document.querySelectorAll("#emojiEditPickerGrid .emoji-option").forEach(o => o.classList.toggle("active", o.textContent.trim() === sub.emoji));
+      document.body.classList.add("modal-open");
+      document.getElementById("subjectEditModal").classList.add("open");
+      setTimeout(() => document.getElementById("modalSubjectEditInput").focus(), 150);
+    }
+    function closeSubjectEditModal() { document.getElementById("subjectEditModal").classList.remove("open"); if (currentActiveSubjectName) openSubjectDetail(currentActiveSubjectName); }
+    function handleSubjectEditKey(e) { if (e.key === "Enter") confirmEditSubject(); if (e.key === "Escape") closeSubjectEditModal(); }
+    function confirmEditSubject() {
+      const input = document.getElementById("modalSubjectEditInput");
+      const newName = input.value.trim(); if (!newName) return;
+      const sub = subjectsData.find(s => s.name === currentActiveSubjectName);
+      if (sub) {
+        const oldName = sub.name;
+        sub.name = newName; sub.emoji = selectedEditEmoji;
+        if (oldName !== newName && appSettings.subjectColors && appSettings.subjectColors[oldName]) {
+          appSettings.subjectColors[newName] = appSettings.subjectColors[oldName];
+          delete appSettings.subjectColors[oldName];
+          for (const day in appSettings.timetable) (appSettings.timetable[day] || []).forEach(slot => { if (slot.subject === oldName) slot.subject = newName; });
+          saveSettings();
+        }
+        if (oldName !== newName && appSettings.weights && appSettings.weights[oldName]) {
+          appSettings.weights[newName] = appSettings.weights[oldName];
+          delete appSettings.weights[oldName];
+          saveSettings();
+        }
+        (appSettings.homework || []).forEach(hw => { if (hw.subject === oldName) hw.subject = newName; });
+        saveSettings();
+        saveSubjects(); renderSubjects(); renderHomework();
+        document.getElementById("subjectEditModal").classList.remove("open");
+        openSubjectDetail(newName);
+      }
+    }
+
+    function promptDeleteSubject() { document.getElementById("subjectDetailModal").classList.remove("open"); document.getElementById("subjectDeleteConfirmModal").classList.add("open"); }
+    function closeSubjectDeleteConfirmModal() { document.getElementById("subjectDeleteConfirmModal").classList.remove("open"); if (currentActiveSubjectName) openSubjectDetail(currentActiveSubjectName); }
+    function executeDeleteSubject() {
+      const deletedName = currentActiveSubjectName;
+      subjectsData = subjectsData.filter(s => s.name !== deletedName);
+      if (appSettings.subjectColors && appSettings.subjectColors[deletedName]) { delete appSettings.subjectColors[deletedName]; saveSettings(); }
+      if (appSettings.weights && appSettings.weights[deletedName]) { delete appSettings.weights[deletedName]; saveSettings(); }
+      saveSubjects(); renderSubjects();
+      currentActiveSubjectName = "";
+      document.getElementById("subjectDeleteConfirmModal").classList.remove("open");
+      checkModalState();
+    }
+
+    function openAverageDetailModal() {
+      const c = document.getElementById("averageBreakdownList"); c.innerHTML = "";
+      subjectsData.forEach(sub => {
+        const avg = getSubjectAverage(sub);
+        c.innerHTML += `<div class="clean-list-item"><span>${sub.emoji} <strong>${escapeHTML(sub.name)}</strong></span><span style="font-weight: 750;">${avg !== null ? avg.toFixed(1) : "—"}</span></div>`;
+      });
+      document.body.classList.add("modal-open");
+      document.getElementById("averageDetailModal").classList.add("open");
+    }
+    function closeAverageDetailModal() { document.getElementById("averageDetailModal").classList.remove("open"); checkModalState(); }
+
+    function startExamWizard() {
+      wizardSelectedSubject = "";
+      document.getElementById("wizardCustomSubjectInput").value = "";
+      const c = document.getElementById("wizardSubjectSelectList"); c.innerHTML = "";
+      subjectsData.forEach(sub => {
+        const btn = document.createElement("button");
+        btn.className = "btn-cancel";
+        btn.style.cssText = "width:100%;text-align:left;padding:10px 14px;display:flex;align-items:center;gap:10px;";
+        btn.innerHTML = `<span style="font-size: 1.1rem;">${sub.emoji}</span> <strong>${escapeHTML(sub.name)}</strong>`;
+        btn.onclick = () => { wizardSelectedSubject = sub.name; closeWizardSubjectModal(); openWizardDaysModal(); };
+        c.appendChild(btn);
+      });
+      document.body.classList.add("modal-open"); document.getElementById("wizardSubjectModal").classList.add("open");
+    }
+    function closeWizardSubjectModal() { document.getElementById("wizardSubjectModal").classList.remove("open"); checkModalState(); }
+    function confirmWizardSubjectCustom() { const v = document.getElementById("wizardCustomSubjectInput").value.trim(); if (!v) return; wizardSelectedSubject = v; closeWizardSubjectModal(); openWizardDaysModal(); }
+    function openWizardDaysModal() {
+      document.getElementById("wizardDaysTitle").textContent = `Klausur für ${wizardSelectedSubject}`;
+      document.getElementById("wizardDaysInput").value = "";
+      document.body.classList.add("modal-open"); document.getElementById("wizardDaysModal").classList.add("open");
+      setTimeout(() => document.getElementById("wizardDaysInput").focus(), 150);
+    }
+    function closeWizardDaysModal() { document.getElementById("wizardDaysModal").classList.remove("open"); checkModalState(); }
+    function handleWizardDaysKey(e) { if (e.key === "Enter") confirmWizardDays(); if (e.key === "Escape") closeWizardDaysModal(); }
+    function confirmWizardDays() {
+      const v = document.getElementById("wizardDaysInput").value.trim(); if (!v) return;
+      const date = parseDateOrDays(v);
+      if (!date) { showGlassError(); return; }
+      appSettings.examsList.push({
+        subject: wizardSelectedSubject,
+        meta: `${date.getDate()}. ${MONTH_NAMES_LONG[date.getMonth()]} ${date.getFullYear()}`,
+        day: date.getDate(), month: date.getMonth() + 1, year: date.getFullYear()
+      });
+      appSettings.examsList.sort((a, b) => new Date(a.year, a.month - 1, a.day) - new Date(b.year, b.month - 1, b.day));
+      saveSettings(); updateExamWidgetUI(); renderCalendarPreviewGrid();
+      closeWizardDaysModal();
+      currentCalendarDate = new Date(date.getFullYear(), date.getMonth(), 1);
+      openCalendarModal();
+    }
+
+    function parseDateOrDays(str) {
+      const today = new Date();
+      if (/^\d+$/.test(str)) { const d = new Date(today); d.setDate(today.getDate() + parseInt(str, 10)); return d; }
+      const nm = str.match(/^(\d{1,2})\.(\d{1,2})\.?(\d{4})?/);
+      if (nm) {
+        let y = nm[3] ? parseInt(nm[3], 10) : today.getFullYear();
+        if (nm[3] && nm[3].length === 2) y = 2000 + parseInt(nm[3], 10);
+        return new Date(y, parseInt(nm[2], 10) - 1, parseInt(nm[1], 10));
+      }
+      const mn = ["januar", "februar", "märz", "maerz", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "dezember"];
+      const lower = str.toLowerCase();
+      for (let i = 0; i < mn.length; i++) {
+        if (lower.includes(mn[i])) {
+          const dm = str.match(/\d{1,2}/);
+          if (dm) { let y = today.getFullYear(); const ym = str.match(/\d{4}/); if (ym) y = parseInt(ym[0], 10); return new Date(y, i, parseInt(dm[0], 10)); }
+        }
+      }
+      return null;
+    }
+
+    function updateExamWidgetUI() {
+      const s = document.getElementById("widgetExamSubject");
+      const m = document.getElementById("widgetExamMeta");
+      if (!s || !m) return;
+      if (appSettings.examsList && appSettings.examsList.length > 0) { s.textContent = appSettings.examsList[0].subject; m.textContent = appSettings.examsList[0].meta; }
+      else { s.textContent = "Keine Klausur"; m.textContent = "Antippen zum Eintragen"; }
+    }
+
+    function checkModalState() { if (document.querySelectorAll(".modal-overlay.open").length === 0) document.body.classList.remove("modal-open"); }
+
+    function handleModalBackground(e, id) {
+      if (e.target.id !== id) return;
+      const map = {
+        subjectModal: closeSubjectModal, subjectDetailModal: closeSubjectDetail,
+        subjectSelectModal: closeSubjectSelectModal, categorySelectModal: closeCategoryModal,
+        gradePromptModal: closeGradePromptModal, gradeEditModal: closeGradeEditModal,
+        deleteConfirmModal: closeDeleteConfirmModal, subjectEditModal: closeSubjectEditModal,
+        subjectDeleteConfirmModal: closeSubjectDeleteConfirmModal, averageDetailModal: closeAverageDetailModal,
+        calendarModal: closeCalendarModal, glassPromptModal: closeGlassPromptModal,
+        monthPickerModal: closeMonthPickerModal, yearPickerModal: closeYearPickerModal,
+        wizardSubjectModal: closeWizardSubjectModal, wizardDaysModal: closeWizardDaysModal,
+        examDeleteConfirmModal: closeExamDeleteConfirmModal, glassCreateSubjectModal: closeGlassCreateSubjectModal,
+        timetablePickerModal: closeTimetablePickerModal, timetableDayModal: closeTimetableDayModal,
+        ttSlotPromptModal: closeTtSlotPrompt, ttSlotDeleteConfirmModal: closeTtSlotDeleteConfirm,
+        homeworkModal: closeHomeworkModal, homeworkDeleteConfirmModal: closeHomeworkDeleteConfirm,
+        homeworkCreateSubjectModal: closeHomeworkCreateSubjectModal
+      };
+      if (map[id]) map[id]();
+    }
+
+    function shareDataViaAirDrop() {
+      const ds = JSON.stringify(appSettings, null, 2);
+      if (navigator.share) navigator.share({ title: 'GradeFlow Backup', text: 'Meine Noten-Daten:', url: window.location.href }).catch(() => {});
+      else { navigator.clipboard.writeText(ds); alert("Daten in die Zwischenablage kopiert!"); }
+    }
+  </script>
+</body>
+</html>
