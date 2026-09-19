@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" id="themeColorMeta" content="#ccd2dd">
   <title>Notio – Dein Notenmanager</title>
   <style>
     @property --accent-color { syntax: '<color>'; inherits: true; initial-value: transparent; }
@@ -76,50 +77,52 @@
                   background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1) !important;
     }
 
-   
-html {
-  background-color: #ccd2dd;
-  transition: background-color 0.8s ease;
-  overscroll-behavior: none;
-  overscroll-behavior-y: none;
-}
-html::before {
-  content: '';
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  width: 100vw;
-  height: 100vh;
-  height: 100lvh;
-  background-color: #ccd2dd;
-  background-image:
-    radial-gradient(circle at 10% 5%, var(--ambient-1) 0%, transparent 38%),
-    radial-gradient(circle at 90% 20%, var(--ambient-2) 0%, transparent 35%),
-    radial-gradient(circle at 50% 100%, var(--ambient-3) 0%, transparent 40%),
-    linear-gradient(145deg, #e2e6ee, #ccd2dd);
-  z-index: -1;
-  pointer-events: none;
-  transition: background 0.8s ease;
-}
-html:has(body.dark-mode) { background-color: #101218; }
-html:has(body.dark-mode)::before {
-  background-color: #101218;
-  background-image:
-    radial-gradient(circle at 10% 5%, var(--ambient-1) 0%, transparent 38%),
-    radial-gradient(circle at 90% 20%, var(--ambient-2) 0%, transparent 35%),
-    radial-gradient(circle at 50% 100%, var(--ambient-3) 0%, transparent 40%),
-    linear-gradient(145deg, #07080c, #101218);
-}
-    body { overscroll-behavior: none; overscroll-behavior-y: none; }
-
- body {
-  min-height: 100vh;
-  min-height: 100lvh;
-  color: var(--text-color);
-  background: transparent;
-  padding: 0;
-  display: flex; justify-content: flex-start; position: relative;
-  transition: color 0.4s ease; overflow-x: hidden;
-}
+    html {
+      height: 100%;
+      background-color: #ccd2dd;
+      transition: background-color 0.8s ease;
+      overscroll-behavior: none;
+      overscroll-behavior-y: none;
+    }
+    html::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100lvh;
+      background-color: #ccd2dd;
+      background-image:
+        radial-gradient(circle at 10% 5%, var(--ambient-1) 0%, transparent 38%),
+        radial-gradient(circle at 90% 20%, var(--ambient-2) 0%, transparent 35%),
+        radial-gradient(circle at 50% 100%, var(--ambient-3) 0%, transparent 40%),
+        linear-gradient(145deg, #e2e6ee, #ccd2dd);
+      z-index: -1;
+      pointer-events: none;
+      transition: background 0.8s ease;
+    }
+    /* #07080c statt #101218 damit Safari die dunkelste Farbe für die Bar nimmt */
+    html:has(body.dark-mode) { background-color: #07080c; }
+    html:has(body.dark-mode)::before {
+      background-color: #07080c;
+      background-image:
+        radial-gradient(circle at 10% 5%, var(--ambient-1) 0%, transparent 38%),
+        radial-gradient(circle at 90% 20%, var(--ambient-2) 0%, transparent 35%),
+        radial-gradient(circle at 50% 100%, var(--ambient-3) 0%, transparent 40%),
+        linear-gradient(145deg, #07080c, #101218);
+    }
+    
+    body {
+      min-height: 100vh;
+      min-height: 100dvh; /* dvh für iOS Support */
+      color: var(--text-color);
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      display: flex; justify-content: flex-start; position: relative;
+      transition: color 0.4s ease; overflow-x: hidden;
+      overscroll-behavior: none; overscroll-behavior-y: none;
+    }
     body::before, body::after { content: ""; position: fixed; width: 450px; height: 450px; border-radius: 50%; pointer-events: none; filter: blur(100px); opacity: calc(var(--has-accent) * (0.12 + var(--glow-intensity) * 6)); z-index: 0; transition: background 0.8s ease, opacity 0.8s ease; }
     body::before { top: -180px; left: -160px; background: var(--accent-color); }
     body::after { right: -180px; bottom: -180px; background: var(--accent-color); }
@@ -127,13 +130,13 @@ html:has(body.dark-mode)::before {
     .pattern-layer { position: fixed; top: calc(-300px - env(safe-area-inset-top)); left: -300px; right: -300px; bottom: calc(-300px - env(safe-area-inset-bottom)); background-repeat: repeat; background-size: 130px 130px; opacity: calc(0.85 + var(--glow-intensity) * 8); pointer-events: none; z-index: 0; transform: translateZ(0); -webkit-mask-image: radial-gradient(ellipse 90% 90% at center, black 45%, transparent 95%); mask-image: radial-gradient(ellipse 90% 90% at center, black 45%, transparent 95%); will-change: opacity; transition: opacity 0.6s ease; }
 
     .app-container {
-  width: 100%;
-  max-width: 440px;
-  position: relative;
-  z-index: 1;
-  padding: calc(40px + env(safe-area-inset-top)) 20px 20px 20px;
-  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
+      width: 100%;
+      max-width: 440px;
+      position: relative;
+      z-index: 1;
+      padding: calc(40px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom)) 20px;
+      transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
     body.modal-open .app-container > *:not(.modal-overlay) { opacity: 0; pointer-events: none; transform: scale(0.98); transition: opacity 0.3s ease, transform 0.3s ease; }
 
     .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
@@ -443,7 +446,7 @@ html:has(body.dark-mode)::before {
     .info-panel-content strong { font-weight: 750; }
 
     @media (max-width: 480px) {
-     .app-container { padding: calc(20px + env(safe-area-inset-top)) 14px 20px 14px; }
+     .app-container { padding: calc(20px + env(safe-area-inset-top)) 14px calc(20px + env(safe-area-inset-bottom)) 14px; }
       .app-container { max-width: 100%; }
       .glass-menu { right: -4px; width: min(310px, calc(100vw - 28px)); }
     }
@@ -1091,8 +1094,16 @@ html:has(body.dark-mode)::before {
       }
 
       if (appSettings.userName) document.getElementById("nameInput").value = appSettings.userName;
+      
+      // Theme initialisieren
       if (appSettings.theme === "dark") document.body.classList.add("dark-mode");
       else if (appSettings.theme === "auto" && window.matchMedia("(prefers-color-scheme: dark)").matches) document.body.classList.add("dark-mode");
+
+      // iOS Theme-Color dynamisch anpassen
+      const metaTheme = document.getElementById("themeColorMeta");
+      if (metaTheme) {
+        metaTheme.setAttribute("content", document.body.classList.contains("dark-mode") ? "#07080c" : "#ccd2dd");
+      }
 
       if (appSettings.glowIntensity !== undefined) {
         document.getElementById("glowIntensitySlider").value = appSettings.glowIntensity;
@@ -1119,6 +1130,10 @@ html:has(body.dark-mode)::before {
         if (appSettings.theme === "auto") {
           if (e.matches) document.body.classList.add("dark-mode");
           else document.body.classList.remove("dark-mode");
+          
+          const metaTheme = document.getElementById("themeColorMeta");
+          if (metaTheme) metaTheme.setAttribute("content", document.body.classList.contains("dark-mode") ? "#07080c" : "#ccd2dd");
+          
           applyAccentColor(appSettings.accentColor);
           renderPattern();
         }
@@ -2425,6 +2440,12 @@ html:has(body.dark-mode)::before {
     function toggleTheme() {
       document.body.classList.toggle("dark-mode");
       appSettings.theme = document.body.classList.contains("dark-mode") ? "dark" : "light";
+      
+      const metaTheme = document.getElementById("themeColorMeta");
+      if (metaTheme) {
+         metaTheme.setAttribute("content", document.body.classList.contains("dark-mode") ? "#07080c" : "#ccd2dd");
+      }
+      
       applyAccentColor(appSettings.accentColor);
       renderPattern();
       saveSettings();
@@ -2751,5 +2772,4 @@ html:has(body.dark-mode)::before {
   </script>
 </body>
 </html>
-
 
