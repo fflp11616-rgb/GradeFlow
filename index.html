@@ -88,7 +88,28 @@
         radial-gradient(circle at 90% 20%, var(--ambient-2) 0%, transparent 35%),
         radial-gradient(circle at 50% 100%, var(--ambient-3) 0%, transparent 40%),
         linear-gradient(145deg, var(--bg-1), var(--bg-2));
-      background-attachment: fixed;
+      html {
+  background-color: #101218;
+  background-image:
+    radial-gradient(circle at 10% 5%, var(--ambient-1) 0%, transparent 38%),
+    radial-gradient(circle at 90% 20%, var(--ambient-2) 0%, transparent 35%),
+    radial-gradient(circle at 50% 100%, var(--ambient-3) 0%, transparent 40%),
+    linear-gradient(145deg, #07080c, #101218);
+  background-attachment: fixed;
+  background-size: cover;
+  min-height: 100dvh;
+  transition: background 0.8s ease;
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
+}
+html:has(body.dark-mode) {
+  background-color: #101218;
+  background-image:
+    radial-gradient(circle at 10% 5%, var(--ambient-1) 0%, transparent 38%),
+    radial-gradient(circle at 90% 20%, var(--ambient-2) 0%, transparent 35%),
+    radial-gradient(circle at 50% 100%, var(--ambient-3) 0%, transparent 40%),
+    linear-gradient(145deg, #07080c, #101218);
+}
       padding: calc(40px + env(safe-area-inset-top)) 20px 0 20px;
       display: flex; justify-content: center; position: relative;
       transition: background 0.8s ease, color 0.4s ease; overflow-x: hidden;
