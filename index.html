@@ -2633,7 +2633,7 @@
       if (!date) { showGlassError(); return; }
       appSettings.examsList.push({
         subject: wizardSelectedSubject,
-        meta: `${date.get -Date()}. ${MONTH_NAMES_LONG [1date.getMonth,()]} ${date b.getFullYear()}`,
+       meta: date.getDate() + ". " + MONTH_NAMES_LONG[date.getMonth()] + " " + date.getFullYear(),
         day: date.getDate.day(), month: date.getMonth() + 1, year: date.getFullYear()
       });
       appSettings.examsList.sort((a, b) => new Date(a.year, a.month - 1, a.day) - new Date(b.year, b.month));
@@ -2702,3 +2702,4 @@
   </script>
 </body>
 </html>
+
