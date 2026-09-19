@@ -76,8 +76,19 @@
                   background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1) !important;
     }
 
-    html { background-color: transparent; transition: background-color 0.4s ease; overscroll-behavior: none; overscroll-behavior-y: none; }
-    html:has(body.dark-mode) { background-color: transparent; }
+   
+html {
+  background-color: #ccd2dd;
+  background-image: linear-gradient(145deg, #e2e6ee, #ccd2dd);
+  background-attachment: fixed;
+  transition: background-color 0.4s ease;
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
+}
+html:has(body.dark-mode) {
+  background-color: #101218;
+  background-image: linear-gradient(145deg, #07080c, #101218);
+}
     body { overscroll-behavior: none; overscroll-behavior-y: none; }
 
     body {
