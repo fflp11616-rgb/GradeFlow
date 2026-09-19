@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" id="themeColorMeta" content="#ccd2dd">
   <title>Notio – Dein Notenmanager</title>
   <style>
     @property --accent-color { syntax: '<color>'; inherits: true; initial-value: transparent; }
@@ -77,18 +78,19 @@
     }
 
     html {
+      height: 100%;
       background-color: #ccd2dd;
       transition: background-color 0.8s ease;
-      /* KEIN overscroll-behavior, damit Safari den Glaseffekt zulässt */
+      overscroll-behavior: none;
+      overscroll-behavior-y: none;
     }
-    
     html::before {
       content: '';
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
       width: 100vw;
       height: 100vh;
-      height: 100dvh; /* Wichtig für dynamische iOS Höhe */
+      height: 100lvh;
       background-color: #ccd2dd;
       background-image:
         radial-gradient(circle at 10% 5%, var(--ambient-1) 0%, transparent 38%),
@@ -99,7 +101,7 @@
       pointer-events: none;
       transition: background 0.8s ease;
     }
-    
+    /* #07080c statt #101218 damit Safari die dunkelste Farbe für die Bar nimmt */
     html:has(body.dark-mode) { background-color: #07080c; }
     html:has(body.dark-mode)::before {
       background-color: #07080c;
@@ -112,16 +114,15 @@
     
     body {
       min-height: 100vh;
-      min-height: 100dvh;
+      min-height: 100dvh; /* dvh für iOS Support */
       color: var(--text-color);
       background: transparent;
       padding: 0;
       margin: 0;
       display: flex; justify-content: flex-start; position: relative;
       transition: color 0.4s ease; overflow-x: hidden;
-      /* KEIN overscroll-behavior hier */
+      overscroll-behavior: none; overscroll-behavior-y: none;
     }
-    
     body::before, body::after { content: ""; position: fixed; width: 450px; height: 450px; border-radius: 50%; pointer-events: none; filter: blur(100px); opacity: calc(var(--has-accent) * (0.12 + var(--glow-intensity) * 6)); z-index: 0; transition: background 0.8s ease, opacity 0.8s ease; }
     body::before { top: -180px; left: -160px; background: var(--accent-color); }
     body::after { right: -180px; bottom: -180px; background: var(--accent-color); }
@@ -133,7 +134,6 @@
       max-width: 440px;
       position: relative;
       z-index: 1;
-      /* Polsterung unten, damit der letzte Button über der SafeArea bleibt, aber die Seite dahinter weiterläuft */
       padding: calc(40px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom)) 20px;
       transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
@@ -1015,6 +1015,7 @@
     </div>
   </div>
 
+  <!-- WEIGHT MODAL (ganz unten für korrekte Layer-Reihenfolge) -->
   <div class="modal-overlay" id="weightModal" onclick="handleModalBackground(event, 'weightModal')">
     <div class="modal-card" onclick="event.stopPropagation()" style="max-width: 360px;">
       <div class="modal-title">⚖️ Noten-Gewichtung</div>
@@ -1094,8 +1095,15 @@
 
       if (appSettings.userName) document.getElementById("nameInput").value = appSettings.userName;
       
+      // Theme initialisieren
       if (appSettings.theme === "dark") document.body.classList.add("dark-mode");
       else if (appSettings.theme === "auto" && window.matchMedia("(prefers-color-scheme: dark)").matches) document.body.classList.add("dark-mode");
+
+      // iOS Theme-Color dynamisch anpassen
+      const metaTheme = document.getElementById("themeColorMeta");
+      if (metaTheme) {
+        metaTheme.setAttribute("content", document.body.classList.contains("dark-mode") ? "#07080c" : "#ccd2dd");
+      }
 
       if (appSettings.glowIntensity !== undefined) {
         document.getElementById("glowIntensitySlider").value = appSettings.glowIntensity;
@@ -1122,6 +1130,10 @@
         if (appSettings.theme === "auto") {
           if (e.matches) document.body.classList.add("dark-mode");
           else document.body.classList.remove("dark-mode");
+          
+          const metaTheme = document.getElementById("themeColorMeta");
+          if (metaTheme) metaTheme.setAttribute("content", document.body.classList.contains("dark-mode") ? "#07080c" : "#ccd2dd");
+          
           applyAccentColor(appSettings.accentColor);
           renderPattern();
         }
@@ -1149,10 +1161,32 @@
       return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
     }
 
+    /* ═══ INFO PANEL (FOOTER) ═══ */
     const INFO_TEXTS = {
-      about: { title: "✨ Wer diese Website gemacht hat", content: `<p><strong>Platzhalter</strong></p>` },
-      privacy: { title: "🔒 Datenschutz", content: `<p><strong>Platzhalter</strong></p>` },
-      howto: { title: "💡 Wie Notio funktioniert", content: `<p><strong>Platzhalter</strong></p>` }
+      about: {
+        title: "✨ Wer diese Website gemacht hat",
+        content: `
+          <p><strong>Platzhalter – Text kommt später von dir.</strong></p>
+          <p>Hier kannst du erzählen, wer Notio entwickelt hat, warum du es gebaut hast und was dich dazu motiviert hat.</p>
+          <p>Vielleicht mit Name, Klasse, Schule oder einem kleinen Gruß an die Nutzer.</p>
+        `
+      },
+      privacy: {
+        title: "🔒 Datenschutz",
+        content: `
+          <p><strong>Platzhalter – Text kommt später von dir.</strong></p>
+          <p>Hier erklärst du, dass alle Daten ausschließlich lokal im Browser gespeichert werden (localStorage) und keine Daten an Server gesendet werden.</p>
+          <p>Du kannst hier auch erwähnen, dass keine Cookies verwendet werden und keine persönlichen Daten das Gerät verlassen.</p>
+        `
+      },
+      howto: {
+        title: "💡 Wie Notio funktioniert",
+        content: `
+          <p><strong>Platzhalter – Text kommt später von dir.</strong></p>
+          <p>Hier kannst du eine kleine Anleitung geben: Wie trägt man Noten ein, was bedeuten die Fächer-Ordner, wie funktioniert der Stundenplan und die Hausaufgaben.</p>
+          <p>Vielleicht mit ein paar kurzen Tipps und Tricks für neue Nutzer.</p>
+        `
+      }
     };
 
     function openInfoModal(key) {
@@ -1169,6 +1203,7 @@
       checkModalState();
     }
 
+    /* ═══ FARBE PRO FACH ═══ */
     function getColorForSubject(subjectName) {
       if (!subjectName) return FALLBACK_COLOR;
       const key = subjectName.trim();
@@ -1190,6 +1225,7 @@
       saveSettings();
     }
 
+    /* ═══ GEWICHTUNG & DURCHSCHNITT ═══ */
     function getWeights(subjectName) {
       const w = (appSettings.weights && appSettings.weights[subjectName]) || "60-40";
       const parts = w.split("-").map(Number);
@@ -1215,6 +1251,7 @@
       if (c) c.textContent = `${subjectsData.length} Fächer aktiv`;
     }
 
+    /* ═══ FÄCHER ═══ */
     function renderSubjects() {
       const list = document.getElementById("subjectList"); list.innerHTML = "";
       subjectsData.forEach(sub => {
@@ -1374,6 +1411,7 @@
       return found ? found.emoji : "📝";
     }
 
+    /* ═══ STUNDENPLAN ═══ */
     function getDateForDay(dayNum) {
       const current = new Date();
       const currentDay = current.getDay() === 0 ? 7 : current.getDay();
@@ -1647,6 +1685,7 @@
       renderDayModalContent();
     }
 
+    /* ═══ HAUSAUFGABEN ═══ */
     function getHomeworkStatus(hw) {
       if (hw.done) return { text: "Erledigt", color: "#34c759", done: true };
       const t = new Date(); t.setHours(0, 0, 0, 0);
@@ -1900,6 +1939,7 @@
       }
     }
 
+    /* ═══ KALENDER ═══ */
     function openCalendarModal() { renderBigCalendar(); document.body.classList.add("modal-open"); document.getElementById("calendarModal").classList.add("open"); }
     function closeCalendarModal() { document.getElementById("calendarModal").classList.remove("open"); renderCalendarPreviewGrid(); checkModalState(); }
     function changeMonth(dir) { currentCalendarDate.setMonth(currentCalendarDate.getMonth() + dir); renderBigCalendar(); }
@@ -2072,6 +2112,7 @@
       });
     }
 
+    /* ═══ SLIDE-VERWALTUNG + WIDGET-POSITION ═══ */
     function getSlideDefinitions() {
       return [
         { id: "avg", label: "📊 Gesamtdurchschnitt", icon: "📊", html: `<div class="widget-slide" onclick="openAverageDetailModal()"><div class="overview-sub">Gesamtdurchschnitt</div><div class="overview-grade" id="overallGrade">—</div><div class="overview-sub" id="subjectCount">${subjectsData.length} Fächer aktiv</div></div>` },
@@ -2269,6 +2310,7 @@
       document.querySelectorAll(".indicator-dot").forEach((d, i) => d.classList.toggle("active", i === index));
     }
 
+    /* ═══ DESIGN ═══ */
     let patternTimeout;
     function scheduleRenderPattern() { clearTimeout(patternTimeout); patternTimeout = setTimeout(renderPattern, 50); }
 
@@ -2398,11 +2440,18 @@
     function toggleTheme() {
       document.body.classList.toggle("dark-mode");
       appSettings.theme = document.body.classList.contains("dark-mode") ? "dark" : "light";
+      
+      const metaTheme = document.getElementById("themeColorMeta");
+      if (metaTheme) {
+         metaTheme.setAttribute("content", document.body.classList.contains("dark-mode") ? "#07080c" : "#ccd2dd");
+      }
+      
       applyAccentColor(appSettings.accentColor);
       renderPattern();
       saveSettings();
     }
 
+    /* ═══ NOTEN EINGEBEN ═══ */
     function handleQuickInput(e) { if (e.key === "Enter") submitQuickInput(); }
     function submitQuickInput() {
       const input = document.getElementById("quickInput");
@@ -2723,3 +2772,4 @@
   </script>
 </body>
 </html>
+
