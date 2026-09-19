@@ -2,9 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta id="themeColorMeta" name="theme-color" content="#07080c" media="(prefers-color-scheme: dark)">
-  <meta id="themeColorMetaLight" name="theme-color" content="#eef2f8" media="(prefers-color-scheme: light)">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Notio – Dein Notenmanager</title>
   <style>
     @property --accent-color { syntax: '<color>'; inherits: true; initial-value: transparent; }
@@ -78,12 +76,14 @@
                   background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1) !important;
     }
 
-    html { background-color: #07080c; transition: background-color 0.4s ease; overscroll-behavior: none; overscroll-behavior-y: none; }
-    html:has(body.dark-mode) { background-color: #07080c; }
+    html { background-color: transparent; transition: background-color 0.4s ease; overscroll-behavior: none; overscroll-behavior-y: none; }
+    html:has(body.dark-mode) { background-color: transparent; }
     body { overscroll-behavior: none; overscroll-behavior-y: none; }
 
     body {
-      min-height: 100vh; color: var(--text-color);
+      min-height: 100vh;
+      min-height: 100dvh;
+      color: var(--text-color);
       background:
         radial-gradient(circle at 10% 5%, var(--ambient-1) 0%, transparent 38%),
         radial-gradient(circle at 90% 20%, var(--ambient-2) 0%, transparent 35%),
@@ -979,7 +979,7 @@
     </div>
   </div>
 
-  <!-- ═══ WEIGHT MODAL (jetzt ganz unten, damit es immer oben liegt) ═══ -->
+  <!-- WEIGHT MODAL (ganz unten für korrekte Layer-Reihenfolge) -->
   <div class="modal-overlay" id="weightModal" onclick="handleModalBackground(event, 'weightModal')">
     <div class="modal-card" onclick="event.stopPropagation()" style="max-width: 360px;">
       <div class="modal-title">⚖️ Noten-Gewichtung</div>
@@ -1031,7 +1031,6 @@
 
     function initApp() {
       const saved = localStorage.getItem("gradeflow_settings");
-      updateThemeColorMeta();
       if (saved) { try { appSettings = { ...appSettings, ...JSON.parse(saved) }; } catch (e) {} }
       if (!appSettings.slideEnabled || Object.keys(appSettings.slideEnabled).length === 0) {
         appSettings.slideEnabled = { avg: true, exam: true, cal: true, hw: true };
@@ -1082,7 +1081,6 @@
 
       applySlideOrder(false);
       renderWidgetToggles();
-      updateThemeColorMeta();
 
       window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => {
         if (appSettings.theme === "auto") {
@@ -1090,23 +1088,11 @@
           else document.body.classList.remove("dark-mode");
           applyAccentColor(appSettings.accentColor);
           renderPattern();
-          updateThemeColorMeta();
         }
       });
 
       const wrapper = document.getElementById("timetablePreview");
       if (wrapper) wrapper.addEventListener("click", handleTimetableClick);
-    }
-
-    function updateThemeColorMeta() {
-      const isDark = document.body.classList.contains("dark-mode");
-      const bgColor = isDark ? "#07080c" : "#eef2f8";
-      const meta = document.getElementById("themeColorMeta");
-      if (meta) meta.content = bgColor;
-      const metaLight = document.getElementById("themeColorMetaLight");
-      if (metaLight) metaLight.content = bgColor;
-      document.documentElement.style.backgroundColor = bgColor;
-      document.body.style.backgroundColor = bgColor;
     }
 
     function handleTimetableClick(e) {
@@ -1240,7 +1226,7 @@
       updateOverallAverage();
     }
 
-  function openSubjectDetail(name, keepFolderOpen = false) {
+    function openSubjectDetail(name, keepFolderOpen = false) {
       currentActiveSubjectName = name;
       const sub = subjectsData.find(s => s.name === name);
       if (!sub) return;
@@ -1254,12 +1240,13 @@
         if (content) {
           content.style.transition = "none";
           folder.classList.remove("expanded");
-          void content.offsetHeight; // erzwungener Reflow → Animation komplett überspringen
+          void content.offsetHeight;
           content.style.transition = "";
         } else {
           folder.classList.remove("expanded");
         }
       }
+
       const klC = document.getElementById("detailKlausurenList"); klC.innerHTML = "";
       if (sub.klausuren && sub.klausuren.length > 0) {
         sub.klausuren.forEach((g, idx) => {
@@ -1313,7 +1300,6 @@
       if (!currentActiveSubjectName) return;
       const currentWeight = (appSettings.weights && appSettings.weights[currentActiveSubjectName]) || "60-40";
       document.querySelectorAll("#weightOptionsModal .weight-option").forEach(el => el.classList.toggle("active", el.dataset.weight === currentWeight));
-      // Fach-Detail-Modal schließen, damit es nicht im Hintergrund bleibt
       document.getElementById("subjectDetailModal").classList.remove("open");
       document.body.classList.add("modal-open");
       document.getElementById("weightModal").classList.add("open");
@@ -1321,7 +1307,6 @@
 
     function closeWeightModal() {
       document.getElementById("weightModal").classList.remove("open");
-      // Zurück zum Fach-Detail-Modal – Ordner "Fach verwalten" bleibt geöffnet
       if (currentActiveSubjectName) {
         setTimeout(() => { openSubjectDetail(currentActiveSubjectName, true); }, 50);
       } else {
@@ -1640,7 +1625,8 @@
       const slot = appSettings.timetable[pendingDeleteTtDay][pendingDeleteTtIdx];
       const dN = { 1: "Montag", 2: "Dienstag", 3: "Mittwoch", 4: "Donnerstag", 5: "Freitag" };
       document.getElementById("ttSlotDeletePromptText").innerHTML = `Möchtest du <strong style="color: var(--text-color);">${escapeHTML(slot.subject)}</strong> am <strong style="color: var(--text-color);">${dN[pendingDeleteTtDay]}</strong> (${escapeHTML(slot.time)}) wirklich löschen?`;
-      document.getElementById("ttSlotDeleteConfirmModal").classList.add("open"); }
+      document.getElementById("ttSlotDeleteConfirmModal").classList.add("open");
+    }
 
     function closeTtSlotDeleteConfirm() { document.getElementById("ttSlotDeleteConfirmModal").classList.remove("open"); document.getElementById("ttSlotPromptModal").classList.add("open"); pendingDeleteTtDay = null; pendingDeleteTtIdx = -1; }
     function executeDeleteTtSlot() {
@@ -1681,7 +1667,7 @@
           <div class="homework-item-info">
             <div class="homework-item-subject" style="color: ${color};">${emoji} ${escapeHTML(h.subject)}</div>
             <div class="homework-item-title">${escapeHTML(h.description || "—")}</div>
-            <div class="homework-item-meta" style};">${status.text}</div>
+            <div class="homework-item-meta" style="color: ${status.color};">${status.text}</div>
           </div>
           <div class="homework-item-actions">
             <button class="icon-action-btn" onclick="event.stopPropagation(); openHomeworkModal('${h.id}');">✏️</button>
@@ -2408,7 +2394,6 @@
       appSettings.theme = document.body.classList.contains("dark-mode") ? "dark" : "light";
       applyAccentColor(appSettings.accentColor);
       renderPattern();
-      updateThemeColorMeta();
       saveSettings();
     }
 
@@ -2733,4 +2718,5 @@
   </script>
 </body>
 </html>
+
 
