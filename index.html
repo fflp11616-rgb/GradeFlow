@@ -77,8 +77,8 @@
                   background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1) !important;
     }
 
-    html { background-color: #07080c; transition: background-color 0.4s ease; overscroll-behavior: none; overscroll-behavior-y: none; }
-    html:has(body.dark-mode) { background-color: #07080c; }
+  html { background-color: #101218; transition: background-color 0.4s ease; overscroll-behavior: none; overscroll-behavior-y: none; }
+  html:has(body.dark-mode) { background-color: #101218; }
     body { overscroll-behavior: none; overscroll-behavior-y: none; }
 
     body {
@@ -1079,7 +1079,7 @@
 
     function updateThemeColorMeta() {
       const isDark = document.body.classList.contains("dark-mode");
-      const bgColor = isDark ? "#07080c" : "#e2e6ee";
+      const bgColor = isDark ? "#101218" : "#e2e6ee";
       const meta = document.getElementById("themeColorMeta");
       if (meta) meta.content = bgColor;
       const metaLight = document.getElementById("themeColorMetaLight");
